@@ -1,0 +1,1430 @@
+<title>Коворкинг localhost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@300;400;600&family=Tektur:wght@500;600;700&display=swap">
+<style>
+:root{
+  /* Layout: short hero → full-width 3D stage → plan | zones split → look & light → ideas → budget table → next steps */
+  --bg:#12101c; --surface:#1a1727; --surface-2:#231f35; --line:#332d4a;
+  --fg:#efe9f8; --muted:#a49cbe; --soft:#cec6e1;
+  --pink:#ff7eb6; --cyan:#73e6dc; --amber:#ffc37d; --violet:#9d7bff; --green:#6ee7a0;
+  --plan-wall:#d4cce6; --plan-floor:#1c1929; --plan-line:#4e4769; --plan-wood:#c89a6a;
+  --display:'Tektur','Golos Text',system-ui,sans-serif;
+  --body:'Golos Text',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'Cascadia Mono',Consolas,monospace;
+  --r:12px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:radial-gradient(1100px 520px at 88% -8%,color-mix(in srgb,var(--violet) 16%,transparent),transparent 70%),radial-gradient(900px 420px at -10% 4%,color-mix(in srgb,var(--pink) 10%,transparent),transparent 70%),var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.page{max-width:1240px;margin-inline:auto;padding-inline:clamp(16px,4vw,40px);padding-block:0 72px}
+a{color:var(--cyan)}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0}
+
+.hero{padding-block:clamp(36px,7vw,72px) 28px;display:grid;gap:18px}
+.hero h1{font-family:var(--display);font-weight:600;font-size:clamp(54px,12vw,140px);line-height:.92;letter-spacing:-.02em;margin:0;color:#fff2f8;text-shadow:0 0 6px color-mix(in srgb,var(--pink) 90%,transparent),0 0 30px color-mix(in srgb,var(--pink) 55%,transparent),0 0 80px color-mix(in srgb,var(--pink) 35%,transparent)}
+.hero h1 .cur{color:var(--pink);animation:blink 1.06s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.lede{max-width:64ch;font-size:clamp(17px,1.6vw,19px);color:var(--soft);margin:0}
+.specs{display:flex;flex-wrap:wrap;gap:14px 36px;margin:6px 0 0}
+.specs div{display:grid;gap:2px}
+.specs dt{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.specs dd{margin:0;font-family:var(--mono);font-size:20px;font-variant-numeric:tabular-nums}
+
+.stage{display:grid;gap:12px}
+.viewer{position:relative;height:clamp(380px,70vh,760px);border-radius:var(--r);overflow:hidden;background:#0d0b16;border:1px solid var(--line)}
+#scene{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#scene:active{cursor:grabbing}
+.labels{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;pointer-events:auto;display:inline-flex;align-items:center;gap:6px;padding:3px 10px 3px 3px;border-radius:999px;background:color-mix(in srgb,var(--bg) 80%,transparent);border:1px solid var(--line);color:var(--fg);font:500 12px/1.2 var(--body);white-space:nowrap;cursor:pointer;backdrop-filter:blur(6px)}
+.lbl b{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--pink);color:var(--bg);font:600 11px var(--mono)}
+.lbl:hover,.lbl[aria-expanded="true"]{border-color:var(--pink)}
+.viewer.no-labels .lbl{display:none}
+.info{position:absolute;left:12px;bottom:12px;max-width:min(380px,calc(100% - 24px));background:color-mix(in srgb,var(--bg) 92%,transparent);border:1px solid var(--line);border-radius:10px;padding:12px 40px 12px 14px;display:grid;gap:4px;backdrop-filter:blur(8px)}
+.info h3{font-size:15px}
+.info p{margin:0;color:var(--soft);font-size:14px}
+.info button{position:absolute;top:6px;right:6px;width:28px;height:28px;border-radius:6px;border:0;background:transparent;color:var(--muted);font-size:18px;cursor:pointer}
+.loading{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-family:var(--mono);color:var(--muted);font-size:13px;background:#0d0b16}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 20px;align-items:center}
+.seg{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg-label{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-right:2px}
+.btn{font:500 13px/1 var(--body);padding:9px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--soft);cursor:pointer}
+.btn:hover{border-color:var(--muted);color:var(--fg)}
+.btn[aria-pressed="true"]{border-color:var(--pink);color:var(--fg);background:var(--surface-2)}
+.hint{margin:0;color:var(--muted);font-size:13px}
+
+section.block{margin-top:clamp(56px,8vw,96px);display:grid;gap:22px}
+h2{font-family:var(--display);font-weight:600;font-size:clamp(28px,3.6vw,40px);line-height:1.1;margin:0;text-wrap:balance}
+h3{font-size:18px;line-height:1.3;margin:0;font-weight:600;text-wrap:balance}
+.intro{max-width:68ch;color:var(--soft);margin:0}
+
+.plan-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:980px){.plan-grid{grid-template-columns:minmax(0,1fr)}}
+.plan-box{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);padding:10px}
+.plan-box svg{display:block;width:100%;min-width:700px;height:auto}
+.p-wall{fill:var(--plan-wall)} .p-floor{fill:var(--plan-floor)}
+.p-zone-hub{fill:color-mix(in srgb,var(--amber) 7%,transparent)} .p-zone-work{fill:transparent} .p-zone-lounge{fill:color-mix(in srgb,var(--pink) 8%,transparent)}
+.p-sep{stroke:var(--muted);stroke-width:2;stroke-dasharray:8 7;fill:none}
+.p-door{stroke:var(--plan-wall);stroke-width:2.5;fill:none}
+.p-win{fill:var(--plan-floor);stroke:var(--cyan);stroke-width:2}
+.p-desk{fill:#2a2640;stroke:var(--plan-line);stroke-width:2}
+.p-mon{stroke:var(--cyan);stroke-width:4;stroke-linecap:round}
+.p-chair{fill:var(--line);stroke:var(--plan-line);stroke-width:1.5}
+.p-isl{fill:color-mix(in srgb,var(--plan-wood) 70%,var(--plan-floor));stroke:var(--plan-wood);stroke-width:2}
+.p-spine{stroke:var(--plan-floor);stroke-width:8}
+.p-furn{fill:#3a2f3f;stroke:var(--plan-line);stroke-width:2}
+.p-acc{fill:color-mix(in srgb,var(--violet) 45%,var(--plan-floor));stroke:var(--violet);stroke-width:2}
+.p-rug{fill:color-mix(in srgb,var(--violet) 22%,var(--plan-floor));stroke:var(--pink);stroke-width:2}
+.p-plant{fill:#4f8a62}
+.p-lamp{fill:var(--amber)}
+.p-screen{fill:var(--fg)} .p-board{fill:var(--green)} .p-proj{fill:var(--plan-wall);stroke:var(--plan-line);stroke-width:2}
+.p-beam{stroke:var(--fg);stroke-opacity:.35;stroke-width:1.5;stroke-dasharray:6 6;fill:none}
+.p-dim{stroke:var(--muted);stroke-width:1.5;fill:none}
+.p-t{fill:var(--muted);font:500 15px var(--mono)}
+.p-tz{fill:var(--fg);font:600 15px var(--mono)}
+.p-num circle{fill:var(--pink)} .p-num text{fill:var(--bg);font:700 14px var(--mono);text-anchor:middle;dominant-baseline:central}
+.plan-col{display:grid;gap:20px;min-width:0}
+.legend{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px}
+@media (max-width:640px){.legend{grid-template-columns:minmax(0,1fr)}}
+.legend li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:start}
+.legend .n{width:22px;height:22px;border-radius:50%;background:var(--pink);color:var(--bg);font:700 11px var(--mono);display:grid;place-items:center;margin-top:1px}
+.legend b{display:block;font-weight:600;font-size:14px;line-height:1.35}
+.legend .d{display:block;color:var(--soft);font-size:13px;line-height:1.45;margin-top:2px}
+.zones{display:grid;gap:22px}
+.zone{display:grid;gap:6px}
+.zone-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.zone-h i{width:12px;height:12px;border-radius:3px;align-self:center;flex:none}
+.meta{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.zone p{margin:0;color:var(--soft);font-size:15px}
+
+.look{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:32px;align-items:start}
+@media (max-width:900px){.look{grid-template-columns:minmax(0,1fr)}}
+.swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+@media (max-width:520px){.swatches{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.sw{display:grid;gap:4px;align-content:start}
+.sw i{display:block;height:56px;border-radius:8px;border:1px solid var(--line)}
+.sw b{font-weight:500;font-size:14px;line-height:1.3}
+.sw code{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.scenes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media (max-width:520px){.scenes{grid-template-columns:minmax(0,1fr)}}
+.scene{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:8px;align-content:start}
+.scene .bar{height:5px;border-radius:3px}
+.scene p{margin:0;color:var(--soft);font-size:14px}
+.scene .btn{justify-self:start;padding:7px 10px;font-size:12px}
+
+.ideas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 44px}
+@media (max-width:760px){.ideas{grid-template-columns:minmax(0,1fr)}}
+.idea{padding-block:18px;border-top:1px solid var(--line);display:grid;gap:6px;align-content:start}
+.idea p{margin:0;color:var(--soft);font-size:15px}
+.tag{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.tag-all{color:var(--cyan)} .tag-opt{color:var(--amber)} .tag-max{color:var(--violet)}
+
+.tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+@media (max-width:760px){.tiers{grid-template-columns:minmax(0,1fr)}}
+.tier{text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;display:grid;gap:6px;align-content:start;color:var(--fg);cursor:pointer;font:inherit}
+.tier:hover{border-color:var(--muted)}
+.tier[aria-pressed="true"]{border-color:var(--pink);box-shadow:inset 0 0 0 1px var(--pink),0 0 28px -10px var(--pink)}
+.t-name{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.t-sum{font-family:var(--mono);font-size:clamp(24px,2.6vw,30px);font-variant-numeric:tabular-nums;line-height:1.1}
+.t-sub{font-size:13px;color:var(--soft)}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r)}
+table{width:100%;min-width:660px;border-collapse:collapse;font-size:14px}
+th,td{padding:10px 12px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+thead th{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:400;background:var(--surface)}
+.num{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+thead th.num{text-align:right}
+tr.cat th,tr.cat td{background:var(--surface-2);font-weight:600;font-size:14px;color:var(--fg)}
+td.chk{width:36px;padding-right:0}
+td.item label{display:grid;gap:2px;cursor:pointer}
+.nm{font-weight:500}
+.spec{color:var(--muted);font-size:13px}
+tr.off td.item,tr.off td.num{opacity:.4}
+tr.off .sum{text-decoration:line-through}
+.qp{display:none;font-family:var(--mono);font-size:12px;color:var(--muted)}
+@media (max-width:600px){table{min-width:0}.c-q,.c-p{display:none}.qp{display:block}th,td{padding:10px 8px}}
+input[type=checkbox]{accent-color:var(--pink);width:16px;height:16px;margin:2px 0 0;cursor:pointer}
+tbody tr:last-child td{border-bottom:0}
+.budget-foot{display:grid;grid-template-columns:minmax(0,1fr) minmax(280px,360px);gap:32px;align-items:start}
+@media (max-width:820px){.budget-foot{grid-template-columns:minmax(0,1fr)}}
+.summary{display:grid;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.summary div{display:flex;justify-content:space-between;gap:20px;font-size:14px;color:var(--soft)}
+.summary div span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--fg);white-space:nowrap}
+.summary .total{border-top:1px solid var(--line);padding-top:10px;font-size:15px;color:var(--fg)}
+.summary .total{align-items:baseline}
+.summary .total span:last-child{font-size:22px;color:var(--pink)}
+.summary .btn{justify-self:start;margin-top:4px}
+.notes{margin:0;padding-left:18px;color:var(--soft);font-size:14px;display:grid;gap:8px;max-width:72ch}
+.sources{font-size:13px;color:var(--muted);margin:0;max-width:80ch}
+
+.steps{margin:0;padding:0;list-style:none;counter-reset:s;display:grid;gap:14px;max-width:76ch}
+.steps li{counter-increment:s;display:grid;grid-template-columns:40px minmax(0,1fr);gap:12px;color:var(--soft)}
+.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--mono);color:var(--pink);font-size:14px;padding-top:2px}
+.steps b{color:var(--fg);font-weight:600}
+footer{margin-top:72px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (prefers-reduced-motion:reduce){.hero h1 .cur{animation:none}}
+</style>
+
+<div class="page">
+  <header class="hero">
+    <p class="eyebrow">Концепт коворкинга · Институт информационных технологий ВВГУ</p>
+    <h1>localhost<span class="cur" aria-hidden="true">_</span></h1>
+    <p class="lede">Компьютерная аудитория 11,5 × 5,8 м становится lo-fi коворкингом. Днём здесь идут пары: 20 ПК вдоль стен, экран под существующий проектор, стол преподавателя. После пар это гостиная института с неоном, мешками и аркадой, центр отдан под ноутбуки.</p>
+    <dl class="specs">
+      <div><dt>Площадь</dt><dd>67 м²</dd></div>
+      <div><dt>Потолок, оценка</dt><dd>2,8 м</dd></div>
+      <div><dt>Мест</dt><dd>37 + аркада</dd></div>
+      <div><dt>Бюджет без ПК</dt><dd id="hero-range">0,21–2,33 млн ₽</dd></div>
+    </dl>
+  </header>
+
+  <section class="stage" aria-label="3D-модель">
+    <div class="viewer" id="viewer">
+      <canvas id="scene" aria-label="Интерактивная 3D-модель коворкинга"></canvas>
+      <div class="labels" id="labels"></div>
+      <div class="info" id="info" hidden>
+        <h3 id="info-t"></h3>
+        <p id="info-d"></p>
+        <button type="button" id="info-x" aria-label="Закрыть">×</button>
+      </div>
+      <div class="loading" id="loading">Собираем аудиторию…</div>
+    </div>
+    <div class="toolbar">
+      <div class="seg" id="views">
+        <span class="seg-label">Вид</span>
+        <button class="btn" type="button" data-view="overview" aria-pressed="true">Обзор</button>
+        <button class="btn" type="button" data-view="entry" aria-pressed="false">От двери</button>
+        <button class="btn" type="button" data-view="work" aria-pressed="false">Рабочая зона</button>
+        <button class="btn" type="button" data-view="lounge" aria-pressed="false">Лаунж</button>
+        <button class="btn" type="button" data-view="hub" aria-pressed="false">Учебный фронт</button>
+        <button class="btn" type="button" data-view="plan" aria-pressed="false">Сверху</button>
+      </div>
+      <div class="seg" id="modes">
+        <span class="seg-label">Свет</span>
+        <button class="btn" type="button" data-mode="day" aria-pressed="false">Пара</button>
+        <button class="btn" type="button" data-mode="eve" aria-pressed="true">Вечер</button>
+        <button class="btn" type="button" data-mode="hack" aria-pressed="false">Хакатон</button>
+      </div>
+      <div class="seg">
+        <button class="btn" type="button" id="tgl-labels" aria-pressed="true">Подписи</button>
+        <button class="btn" type="button" id="tgl-spin" aria-pressed="false">Облёт</button>
+      </div>
+    </div>
+    <p class="hint">Вращать — мышью или пальцем, приближать — колесом или щипком, сдвигать — правой кнопкой или двумя пальцами. Номера на модели совпадают с планом ниже.</p>
+  </section>
+
+  <section class="block" id="plan" aria-labelledby="plan-h">
+    <h2 id="plan-h">План и зоны</h2>
+    <p class="intro">20 ПК стоят вдоль длинных стен, по 10 с каждой стороны, ряды доходят до дальнего торца. У двери учебный фронт: на паре все смотрят на экран на торцевой стене. В центре острова для ноутбуков, в дальнем конце, в проходе между рядами ПК, — лаунж с аркадой.</p>
+    <div class="plan-grid">
+      <div class="plan-col">
+        <div class="plan-box"><svg id="plan-svg" viewBox="0 0 1546 740" role="img" aria-label="План коворкинга 11,5 на 5,8 метра с расстановкой мебели"></svg></div>
+        <ol class="legend" id="legend" aria-label="Что обозначают номера на плане"></ol>
+      </div>
+      <div class="zones">
+        <div class="zone">
+          <div class="zone-h"><i style="background:var(--amber)"></i><h3>Учебный фронт и вход</h3><span class="meta">2,75 × 5,8 м · 16 м²</span></div>
+          <p>Экран 2,4 м на торцевой стене под проектор, который уже есть. Рядом маркерная стена и стол преподавателя сбоку, чтобы не закрывать картинку. У двери кофе-стойка со шкафом-зарядкой, над дверью табло свободных мест.</p>
+        </div>
+        <div class="zone">
+          <div class="zone-h"><i style="background:var(--cyan)"></i><h3>Рабочая зона</h3><span class="meta">5,9 × 5,8 м · 34 м²</span></div>
+          <p>20 ПК вдоль длинных стен, по 10 с шагом 0,95 м. В центре два стола-острова 2,4 × 0,8 м на 12 мест с ноутбуком, в столешнице розетки 220 В и USB-C. Над столами гекс-свет, на стене акустические соты. Проход между ПК и островами около 0,7 м. До дальних ПК от экрана около 11 м, поэтому слайды дублируются на мониторы.</p>
+        </div>
+        <div class="zone">
+          <div class="zone-h"><i style="background:var(--pink)"></i><h3>Лаунж</h3><span class="meta">2,85 × 5,8 м · 16,5 м²</span></div>
+          <p>Пять мешков на шестиугольном ковре в проходе между рядами ПК, тёплые подвесы, полка с lo-fi радио, аркада у торцевой стены. Сама стена — мурал с закатом над заливом и неоном «localhost».</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="look" aria-labelledby="look-h">
+    <h2 id="look-h">Цвет, геометрия, свет</h2>
+    <p class="intro">Приглушённые лавандовые стены и тёмный потолок над лаунжем дают фон, на котором работает свет. Геометрия на всё пространство одна — шестиугольник: соты на стене, светильники над столами, ковёр и столики. Неон в двух цветах: розовый для названия, бирюзовый для института. Тёплый свет 2700 K только в лаунже.</p>
+    <div class="look">
+      <div class="swatches">
+        <div class="sw"><i style="background:#77739a"></i><b>Стены</b><code>#77739A</code></div>
+        <div class="sw"><i style="background:#24223a"></i><b>Потолок лаунжа</b><code>#24223A</code></div>
+        <div class="sw"><i style="background:#2b2d3f"></i><b>Ковровая плитка</b><code>#2B2D3F</code></div>
+        <div class="sw"><i style="background:#c89a6a"></i><b>Фанера островов</b><code>#C89A6A</code></div>
+        <div class="sw"><i style="background:#ff7eb6"></i><b>Неон «localhost»</b><code>#FF7EB6</code></div>
+        <div class="sw"><i style="background:#73e6dc"></i><b>Неон «ИТС ВВГУ»</b><code>#73E6DC</code></div>
+        <div class="sw"><i style="background:#ffc37d"></i><b>Тёплый свет</b><code>2700 K</code></div>
+        <div class="sw"><i style="background:linear-gradient(90deg,#2f3a66 0 34%,#c9809f 34% 67%,#3d9c98 67%)"></i><b>Войлок сот</b><code>3 цвета</code></div>
+      </div>
+      <div class="scenes">
+        <div class="scene"><div class="bar" style="background:linear-gradient(90deg,#fff3e3,#e3f0ff)"></div><h3>Пара</h3><p>Линейный свет 4000 K над ПК на полную, неон приглушён, на экране слайды. Включается с кафедры одной кнопкой.</p><button class="btn" type="button" data-scene-mode="day">Показать в 3D</button></div>
+        <div class="scene"><div class="bar" style="background:linear-gradient(90deg,#9d7bff,#ff7eb6,#ffc37d)"></div><h3>Вечер</h3><p>Тёплые подвесы, фиолетовая подсветка за мониторами, неон на полную. После 17:00.</p><button class="btn" type="button" data-scene-mode="eve">Показать в 3D</button></div>
+        <div class="scene"><div class="bar" style="background:linear-gradient(90deg,#73e6dc,#9d7bff,#ff7eb6,#ffc37d,#73e6dc)"></div><h3>Хакатон</h3><p>Подсветка переливается, свет над столами холодный. Для ночных хакатонов и геймджемов.</p><button class="btn" type="button" data-scene-mode="hack">Показать в 3D</button></div>
+        <div class="scene"><div class="bar" style="background:linear-gradient(90deg,#24223a,#ff7eb6 50%,#24223a)"></div><h3>Кино</h3><p>Гаснет всё, кроме вывески и подсветки. Кино идёт через тот же проектор и экран, мешки переносят в центральный проход.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="ideas" aria-labelledby="ideas-h">
+    <h2 id="ideas-h">Что ещё впишется</h2>
+    <p class="intro">Помимо столов, мешков, зарядок, неона, аркады и места для пар. Половину этого студенты ИТС могут собрать сами как учебные проекты, и тогда коворкинг становится витриной института, а не просто комнатой.</p>
+    <div class="ideas">
+      <div class="idea"><span class="tag tag-opt">Оптимум и выше</span><h3>Свет как студенческий проект</h3><p>Адресные ленты на контроллерах ESP32 с прошивкой WLED. Сцены переключаются с телефона, у света есть открытый API: студенты пишут свои эффекты и защищают их как курсовые.</p></div>
+      <div class="idea"><span class="tag tag-all">Все варианты · 3 тыс. ₽</span><h3>Шумосветофор</h3><p>Микрофон на ESP32 слушает фон. Пока тихо, кольцо на стене зелёное; если стало шумно, оно плавно краснеет. Тишину поддерживает свет, а не табличка.</p></div>
+      <div class="idea"><span class="tag tag-all">Все варианты</span><h3>Табло мест и бот</h3><p>Экран у входа и Telegram-бот: «свободно 14 мест, шум 41 дБ». Данные берутся с датчиков на местах или по числу подключений к Wi-Fi.</p></div>
+      <div class="idea"><span class="tag tag-all">Все варианты</span><h3>Lo-fi радио с голосованием</h3><p>Колонки на комоде в лаунже, плейлист выбирают через бота. Громкость ограничена программно, чтобы радио не мешало рабочей зоне.</p></div>
+      <div class="idea"><span class="tag tag-all">Бесплатно</span><h3>Аркада для студенческих игр</h3><p>На автомате крутятся игры с геймджемов ИТС, рекорды выводятся на табло. Раз в семестр — турнир с призами от партнёров.</p></div>
+      <div class="idea"><span class="tag tag-all">Все варианты</span><h3>Настолки и книги на обмен</h3><p>Полки на торцевой стене лаунжа: настолки, книги и растения. Отдельный стеллаж в 67 м² с 20 ПК уже не помещается.</p></div>
+      <div class="idea"><span class="tag tag-all">Все варианты</span><h3>Маркерная стена у экрана</h3><p>Участок стены рядом с экраном красится маркерной краской. На паре это доска преподавателя, вечером на ней рисуют схемы для хакатонов.</p></div>
+      <div class="idea"><span class="tag tag-max">Максимум</span><h3>Граф посещаемости</h3><p>LED-панель 7 × 52 клетки, как граф коммитов на GitHub: каждая клетка — день, яркость — сколько людей пришло.</p></div>
+      <div class="idea"><span class="tag tag-all">Бесплатно</span><h3>Киновечера и демо-дни</h3><p>Проектор для пар уже есть. Вечером на тот же экран показывают кино и защиты проектов, мешки переносят в проход.</p></div>
+      <div class="idea"><span class="tag tag-max">Максимум</span><h3>Логотип из мха</h3><p>Стабилизированный мох не требует полива и хорошо смотрится рядом с неоном. Подходит для логотипа ВВГУ у входа.</p></div>
+    </div>
+  </section>
+
+  <section class="block" id="budget" aria-labelledby="budget-h">
+    <h2 id="budget-h">Сколько это стоит</h2>
+    <p class="intro">Три варианта без компьютеров. Выберите вариант и снимите галочки с того, что не нужно, итог пересчитается. Цены — ориентир на октябрь 2026 по рознице в России.</p>
+    <div class="tiers" id="tiers"></div>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th scope="col"><span class="visually-hidden" hidden>Учитывать</span></th><th scope="col">Позиция</th><th scope="col" class="num c-q">Кол-во</th><th scope="col" class="num c-p">Цена</th><th scope="col" class="num">Сумма</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <div class="budget-foot">
+      <ul class="notes">
+        <li>Компьютеры, кресла к ним и проектор в смету не входят: они уже есть.</li>
+        <li>Экран под проектор не выше 2,5 м от пола при потолке 2,8 м, поэтому его ширина 2,4 м. Дальним рядам слайды дублирует программа управления классом, например бесплатная Veyon.</li>
+        <li>Доставка во Владивосток и сборка заложены как 6 % от позиций, резерв на непредвиденное — 10 %.</li>
+        <li>Если закупка идёт через 223-ФЗ, поставщики обычно добавляют 10–25 % к рознице.</li>
+        <li>Для учебной аудитории нужны сертификаты пожарной безопасности: класс КМ у отделки и пола, огнезащитная ткань у мешков. Неон — только светодиодный на 12–24 В.</li>
+        <li>Нагрузка на сеть: 20 ПК дают около 5 кВт, 12 ноутбуков около 0,8 кВт, свет и чайник ещё 2–3 кВт. ПК и розетки столов лучше развести по отдельным группам.</li>
+        <li>20 ПК, 12 мест с ноутбуком и лаунж на 67 м² — плотная расстановка. Санитарные требования к компьютерным классам стоит уточнить у вуза до закупки.</li>
+      </ul>
+      <div class="summary" id="summary"></div>
+    </div>
+    <p class="sources">Ориентиры цен: кресла-мешки — <a href="https://bestmebelik.ru/shop/UID_159308.html" target="_blank" rel="noopener">BestMebelik</a>, <a href="https://chel.puffberi.ru/" target="_blank" rel="noopener">Пуффбери</a>; ковровая плитка — <a href="https://kovrolin.ru/kovrovaja-plitka/50x50/" target="_blank" rel="noopener">kovrolin.ru</a>; войлочные соты — <a href="https://maxforte.ru/akusticheskie-dekorativnie-paneli/paneli-dlya-sten-akusticheskie-dekorativnie/acoudec-hexagon" target="_blank" rel="noopener">MaxForte</a>; кабины для звонков — <a href="https://lwop.ru/shop/one" target="_blank" rel="noopener">LWOP</a>; зарядные локеры — <a href="https://violanta.com/terminaly-dlya-zaryadki-mob-telefonov" target="_blank" rel="noopener">Violanta</a>; неон — <a href="https://neon-show.ru/" target="_blank" rel="noopener">Неон Шоу</a>.</p>
+  </section>
+
+  <section class="block" id="next" aria-labelledby="next-h">
+    <h2 id="next-h">Что сделать дальше</h2>
+    <ol class="steps">
+      <li><span><b>Дообмерить аудиторию.</b> Длина и ширина уже есть. Осталось: высота потолка, где окна, дверь и розетки, тип пола и потолка, где висит проектор и на каком расстоянии от стены даёт картинку 2,4 м.</span></li>
+      <li><span><b>Согласовать с хозяйственной службой (АХЧ) и пожарной безопасностью.</b> Чайник и холодильник, мешки, ковровая плитка, нагрузка на сеть.</span></li>
+      <li><span><b>Получить векторные логотипы ИТС и ВВГУ.</b> Сейчас на вывеске стоит текст-заглушка.</span></li>
+      <li><span><b>Выбрать вариант и источник денег.</b> Бюджет института, грант или IT-партнёр с упоминанием на табло.</span></li>
+      <li><span><b>Раздать студентам технические задачи.</b> Свет на WLED, табло мест и бот, шумосветофор, игры для аркады.</span></li>
+      <li><span><b>Работы по порядку.</b> Электрика → покраска и мурал → пол → свет и неон → мебель. Ориентир 4–6 недель после закупки.</span></li>
+    </ol>
+  </section>
+
+  <footer>Концепт, октябрь 2026. 3D-модель упрощённая: размеры по обмеру 11,5 × 5,8 м, высота 2,8 м — оценка. Окна и дверь стоят условно, расстановка уточняется после полного обмера. Логотипы на вывеске — текстовые заглушки.</footer>
+</div>
+
+<script>
+window.LAYOUT = {
+  // обмер: 11,5 × 5,8 м; высота потолка — оценка
+  L: 11.5, W: 5.8, H: 2.8,
+  door: { x0: -5.1, x1: -4.1, h: 2.1 },
+  windows: [-3.4, 0.4, 4.2],
+  posters: [-5.0, -1.5, 2.3],
+  pc: { x0: -3.75, n: 10, pitch: 0.95 },
+  islands: [-1.5, 1.3],
+  isl: { len: 2.4, w: 0.8 },
+  zones: [
+    { id: 'hub', x0: -5.75, x1: -3.0, name: 'Учебный фронт', len: '2 750' },
+    { id: 'work', x0: -3.0, x1: 2.9, name: 'Рабочая зона', len: '5 900' },
+    { id: 'lounge', x0: 2.9, x1: 5.75, name: 'Лаунж', len: '2 850' }
+  ],
+  rug: { x: 4.1, z: 0.2, r: 1.1 },
+  table: [4.1, 0.2, 0.3],
+  bags: [[3.2, -0.5, '#e0a43c'], [3.2, 0.8, '#3d9c98'], [4.1, 1.2, '#e8746b'], [4.95, 0.7, '#a58fd6'], [4.65, -0.55, '#d77fa3']],
+  pendants: [[3.6, 2.3, 0.9], [4.4, 2.4, -0.1]],
+  shelf: { z0: 1.25, z1: 2.05 },
+  sign: { z: 0.45 },
+  arcade: { x: 5.3, z: -1.3, rot: Math.PI },
+  screen: { z0: -1.2, z1: 1.2, y0: 1.0, y1: 2.5 },
+  board: { z0: 1.35, z1: 2.55, y0: 0.95, y1: 2.25 },
+  desk: { x0: -5.0, x1: -4.3, z0: 1.0, z1: 2.2 },
+  projector: { x: -2.2, z: 0 },
+  coffee: { z0: -2.85, z1: -1.5 },
+  locker: { z: -2.45 },
+  sotyBlobs: [[-1.6, 2.05, 1.5], [1.8, 2.1, 1.3], [4.6, 2.0, 1.1]]
+};
+
+window.FEATURES = [
+  { n: 1, t: 'Неон и мурал', d: 'Торцевая стена лаунжа: геометрический закат над заливом, мост и вывеска «localhost» с подписью института. Главная фототочка.', p: [5.65, 2.72, 1.5], g: 'east' },
+  { n: 2, t: 'Акустические соты', d: 'Шестигранные панели из ПЭТ-войлока в трёх цветах. Гасят эхо от 37 человек и задают геометрию всего зала.', p: [1.0, 2.5, -2.85], g: 'north' },
+  { n: 3, t: 'Острова с питанием', d: 'Два стола 2,4 × 0,8 м на 12 мест. По центру блоки розеток 220 В и USB-C, кабель уходит в напольный лючок.', p: [-1.5, 0.95, 0], g: null },
+  { n: 4, t: 'Гекс-свет', d: 'Подвесные шестиугольники из LED-профиля над островами: днём ровный рабочий свет, вечером цветной.', p: [1.3, 2.3, 0.7], g: null },
+  { n: 5, t: 'Подсветка за мониторами', d: 'Адресная лента на ESP32 с прошивкой WLED вдоль обоих рядов ПК. Снимает нагрузку с глаз и красит стены в вечерний цвет.', p: [0.0, 1.05, -2.8], g: 'north' },
+  { n: 6, t: 'Аркадный автомат', d: 'Уже есть. Стоит у торцевой стены лаунжа, в дальнем от экрана конце: на паре выключен, вечером собирает людей.', p: [5.3, 2.05, -1.3], g: null },
+  { n: 7, t: 'Кофе-пойнт и табло', d: 'Стойка с чайником и мини-холодильником у двери. Над дверью экран: сколько свободных мест и какой сейчас шум.', p: [-5.6, 1.15, -1.75], g: 'west' },
+  { n: 8, t: 'Шкаф-зарядка', d: '10 ячеек с замками и кабелями USB-C и Lightning над кофе-стойкой: телефон заряжается, пока идёт пара.', p: [-5.6, 2.1, -2.45], g: 'west' },
+  { n: 9, t: 'Лаунж на мешках', d: 'Пять кресел-мешков на шестиугольном ковре в проходе между рядами ПК, тёплые подвесы-шары и низкий столик.', p: [4.1, 0.95, 0.2], g: null },
+  { n: 10, t: 'Lo-fi радио', d: 'Полка на торцевой стене: колонка и проигрыватель. Плейлист выбирают голосованием в боте, громкость ограничена.', p: [5.6, 1.7, 1.65], g: 'east' },
+  { n: 11, t: 'Маркерная стена', d: 'Участок стены рядом с экраном покрыт маркерной краской: на паре это доска преподавателя, вечером — место для схем и идей.', p: [-5.65, 2.45, 1.95], g: 'west' },
+  { n: 12, t: 'Шумосветофор', d: 'Кольцо на стене слушает фон: зелёное, пока тихо, и плавно краснеет, если стало шумно.', p: [-3.95, 2.62, -2.85], g: 'north' },
+  { n: 13, t: 'Экран для пар', d: 'Экран 2,4 м на торцевой стене под проектор, который уже есть. Дальним рядам картинку дублирует на мониторы ПК программа управления классом, например бесплатная Veyon.', p: [-5.65, 2.7, -0.4], g: 'west' },
+  { n: 14, t: 'Место преподавателя', d: 'Стол-кафедра сбоку от экрана, чтобы не закрывать картинку. В столе розетки, HDMI и USB-C до проектора, рядом панель сцен света.', p: [-4.65, 1.25, 1.6], g: null }
+];
+
+// [кол-во, цена за единицу, описание, единица]; null — позиции нет в варианте
+window.BUDGET = [
+  { cat: 'Отделка', items: [
+    { n: 'Покраска стен', min: [1, 21000, 'Материалы на ~87 м², красят студенты'], opt: [87, 650, 'Подрядчик, моющаяся краска', 'м²'], max: [87, 750, 'Подрядчик, с выравниванием', 'м²'] },
+    { n: 'Потолок', min: null, opt: [17, 700, 'Тёмный цвет над лаунжем', 'м²'], max: [67, 700, 'Весь потолок в графит', 'м²'] },
+    { n: 'Геометрия на торцевой стене', min: [1, 8000, 'Трафареты и малярный скотч, рисуют студенты'], opt: [16, 2800, 'Художник, геометрический мурал', 'м²'], max: [16, 4500, 'Сюжетный мурал «Владивосток lo-fi»', 'м²'] },
+    { n: 'Маркерная стена у экрана', min: [1, 6000, 'Маркерная краска, около 1,5 м²'], opt: [1, 8000, 'Маркерная краска, около 2 м²'], max: [1, 15000, 'Магнитно-маркерное покрытие, около 2 м²'] },
+    { n: 'Акустические соты', min: [4, 3000, 'Самоклеящиеся войлочные шестигранники', 'м²'], opt: [8, 4000, 'ПЭТ-войлок, три цвета, над ПК', 'м²'], max: [14, 5000, 'Над ПК и в лаунже', 'м²'] },
+    { n: 'Ковровая плитка 50 × 50', min: null, opt: [67, 2000, 'Полипропилен, с укладкой', 'м²'], max: [67, 3650, 'Полиамид, класс 33, с укладкой', 'м²'] },
+    { n: 'Акустическое облако над лаунжем', min: null, opt: null, max: [1, 45000, 'Подвесные панели'] }
+  ] },
+  { cat: 'Свет и неон', items: [
+    { n: 'Неоновая вывеска', min: [1, 18000, '«ИТС ВВГУ», около 1 м'], opt: [1, 55000, '«localhost» и «ИТС · ВВГУ», около 2,4 м'], max: [1, 80000, 'Главная вывеска и «PRESS START» у аркады'] },
+    { n: 'Подсветка за мониторами', min: [24, 650, 'RGB-лента 12 В без профиля', 'м'], opt: [35, 1600, 'Адресная лента в профиле, ESP32 + WLED', 'м'], max: [48, 1800, 'То же плюс карниз по потолку', 'м'] },
+    { n: 'Гекс-светильники над столами', min: null, opt: [2, 20000, 'Профиль и лента, сборка на месте'], max: [2, 40000, 'На заказ, с диммированием'] },
+    { n: 'Рабочий свет над ПК', min: null, opt: null, max: [19, 6000, 'Линейные подвесы 4000 K вдоль рядов', 'м'] },
+    { n: 'Тёплый свет в лаунже', min: [2, 2500, 'Подвесы-шары на шнуре'], opt: [3, 4000, 'Подвесы-шары с диммером'], max: [4, 5000, 'Дизайнерские подвесы'] },
+    { n: 'Электромонтаж', min: [1, 10000, 'Материалы, монтаж силами хозслужбы'], opt: [1, 60000, 'Линии под 20 ПК и розетки столов, диммеры'], max: [1, 130000, 'Новые линии, щиток, весь свет'] }
+  ] },
+  { cat: 'Мебель и зарядки', items: [
+    { n: 'Столы-острова', min: [1, 0, 'Существующие столы, переставляем'], opt: [2, 36000, '2,4 × 0,8 м, металлокаркас, фанера'], max: [2, 60000, 'С кабель-каналом и встроенным питанием'] },
+    { n: 'Розетки на столах', min: [6, 1800, 'Сетевые фильтры с USB-C'], opt: [6, 3500, 'Встраиваемые блоки: 2 × 220 В + USB-C'], max: [1, 0, 'Входят в столы'] },
+    { n: 'Стулья к островам', min: [12, 0, 'Существующие'], opt: [12, 4500, 'Пластик и дерево, штабелируемые'], max: [12, 9000, 'Дизайнерские, мягкое сиденье'] },
+    { n: 'Кресла-мешки', min: [4, 2500, 'Оксфорд XXL'], opt: [5, 4500, 'XXL, съёмный чехол, огнезащитная ткань'], max: [6, 7500, 'Мебельная ткань, премиум'] },
+    { n: 'Ковёр и столик в лаунже', min: [1, 7000, 'Ковёр 2 × 2 м'], opt: [1, 26000, 'Шестигранный ковёр и столик'], max: [1, 45000, 'Ковёр на заказ и 2 столика'] },
+    { n: 'Полки: радио, настолки, книги', min: [1, 3000, 'Одна настенная полка'], opt: [2, 4500, 'Настенные полки из фанеры'], max: [3, 6000, 'Полки с подсветкой'] },
+    { n: 'Зарядка телефонов', min: [2, 3000, 'Настенные USB-станции'], opt: [1, 35000, 'Шкаф на 10 ячеек с замками'], max: [1, 93000, 'Автомат-локер на 10 ячеек'] },
+    { n: 'Место преподавателя', min: [1, 0, 'Существующий стол'], opt: [1, 35000, 'Стол-кафедра с розетками, HDMI и USB-C к проектору'], max: [1, 70000, 'Кафедра на заказ, док-станция, беспроводной вывод'] },
+    { n: 'Кофе-пойнт', min: [1, 5000, 'Чайник, полка, кружки'], opt: [1, 40000, 'Тумба, чайник, мини-холодильник'], max: [1, 110000, 'Тумба и зерновая кофемашина'] }
+  ] },
+  { cat: 'Техника и медиа', items: [
+    { n: 'Lo-fi радио', min: [1, 8000, 'Активная колонка'], opt: [1, 25000, 'Пара активных колонок и стример'], max: [1, 60000, 'Колонки и виниловый проигрыватель'] },
+    { n: 'Табло над дверью', min: [1, 9000, 'Старый монитор и Raspberry Pi'], opt: [1, 32000, 'ТВ 32 дюйма, Raspberry Pi, датчики мест'], max: [1, 50000, 'ТВ 43 дюйма и датчики мест'] },
+    { n: 'Шумосветофор', min: [1, 3000, 'ESP32, микрофон, LED-кольцо'], opt: [1, 3000, 'ESP32, микрофон, LED-кольцо'], max: [1, 3000, 'ESP32, микрофон, LED-кольцо'] },
+    { n: 'Аркадный автомат', min: [1, 0, 'Уже есть'], opt: [1, 10000, 'Подсветка, наклейки, новые кнопки'], max: [1, 30000, 'Рестайлинг корпуса и табло рекордов'] },
+    { n: 'Экран для проектора', min: [1, 6000, 'Проекционная краска на участок стены'], opt: [1, 18000, 'Настенный рулонный экран 240 см'], max: [1, 45000, 'Моторизованный экран 240 см'] },
+    { n: 'LED-граф посещаемости', min: null, opt: null, max: [1, 25000, 'Панель 7 × 52, собирают студенты'] }
+  ] },
+  { cat: 'Декор', items: [
+    { n: 'Растения', min: [1, 6000, 'Черенки и недорогие кашпо'], opt: [1, 22000, '2 напольных и 6 подвесных над ПК'], max: [1, 45000, 'Крупномеры с автополивом'] },
+    { n: 'Логотип из стабилизированного мха', min: null, opt: null, max: [1, 40000, 'Около 1 м, без полива'] },
+    { n: 'Постеры, навигация, плёнка на дверь', min: [1, 9000, 'Печать и рамки'], opt: [1, 16000, 'Печать, рамки, плёнка'], max: [1, 30000, 'Полное брендирование'] }
+  ] }
+];
+</script>
+<script>
+(function drawPlan() {
+  var LY = window.LAYOUT, S = 90, OX = 80, OY = 80, HL = LY.L / 2, HW = LY.W / 2;
+  var X = function (x) { return +(OX + (x + HL + 0.2) * S).toFixed(1); };
+  var Y = function (z) { return +(OY + (z + HW + 0.2) * S).toFixed(1); };
+  var svg = document.getElementById('plan-svg');
+  svg.setAttribute('viewBox', '0 0 ' + Math.round(X(HL + 0.2) + OX) + ' ' + Math.round(Y(HW + 0.2) + 84));
+  var o = [];
+  function rect(x0, z0, x1, z1, cls, extra) {
+    o.push('<rect class="' + cls + '" x="' + X(Math.min(x0, x1)) + '" y="' + Y(Math.min(z0, z1)) + '" width="' + (Math.abs(x1 - x0) * S).toFixed(1) + '" height="' + (Math.abs(z1 - z0) * S).toFixed(1) + '" ' + (extra || '') + '/>');
+  }
+  function circ(x, z, r, cls, fill) { o.push('<circle class="' + (cls || '') + '" cx="' + X(x) + '" cy="' + Y(z) + '" r="' + (r * S).toFixed(1) + '"' + (fill ? ' style="fill:' + fill + '"' : '') + '/>'); }
+  function line(x0, z0, x1, z1, cls) { o.push('<line class="' + cls + '" x1="' + X(x0) + '" y1="' + Y(z0) + '" x2="' + X(x1) + '" y2="' + Y(z1) + '"/>'); }
+  function hex(x, z, r, cls) {
+    var pts = [];
+    for (var i = 0; i < 6; i++) { var a = i * Math.PI / 3; pts.push(X(x + r * Math.sin(a)) + ',' + Y(z + r * Math.cos(a))); }
+    o.push('<polygon class="' + cls + '" points="' + pts.join(' ') + '"/>');
+  }
+  function text(x, y, s, cls, extra) { o.push('<text class="' + (cls || 'p-t') + '" x="' + x + '" y="' + y + '" ' + (extra || '') + '>' + s + '</text>'); }
+
+  rect(-HL - 0.2, -HW - 0.2, HL + 0.2, HW + 0.2, 'p-wall');
+  rect(-HL, -HW, HL, HW, 'p-floor');
+  LY.zones.forEach(function (zn) { rect(zn.x0, -HW, zn.x1, HW, 'p-zone-' + zn.id); });
+  line(LY.zones[1].x0, -HW, LY.zones[1].x0, HW, 'p-sep'); line(LY.zones[2].x0, -HW, LY.zones[2].x0, HW, 'p-sep');
+  // дверь: петли со стороны x1, открывается внутрь
+  var d = LY.door, dw = d.x1 - d.x0;
+  rect(d.x0, -HW - 0.22, d.x1, -HW + 0.02, 'p-floor');
+  o.push('<path class="p-door" d="M' + X(d.x1) + ' ' + Y(-HW) + ' L' + X(d.x1) + ' ' + Y(-HW + dw) + ' M' + X(d.x0) + ' ' + Y(-HW) + ' A' + (dw * S) + ' ' + (dw * S) + ' 0 0 0 ' + X(d.x1) + ' ' + Y(-HW + dw) + '"/>');
+  text((X(d.x0) + X(d.x1)) / 2, Y(-HW - 0.2) - 6, 'вход', 'p-t', 'text-anchor="middle"');
+  // окна
+  LY.windows.forEach(function (c) { rect(c - 0.9, HW, c + 0.9, HW + 0.2, 'p-win'); line(c - 0.9, HW + 0.1, c + 0.9, HW + 0.1, 'p-win'); });
+  // ряды ПК
+  var x0 = LY.pc.x0, x1 = x0 + LY.pc.n * LY.pc.pitch;
+  [-1, 1].forEach(function (s) {
+    var zW = s * HW;
+    rect(x0, zW, x1, zW - s * 0.65, 'p-desk');
+    for (var i = 0; i < LY.pc.n; i++) {
+      var x = x0 + LY.pc.pitch * (i + 0.5);
+      line(x - 0.27, zW - s * 0.2, x + 0.27, zW - s * 0.2, 'p-mon');
+      circ(x, zW - s * 0.98, 0.21, 'p-chair');
+    }
+  });
+  // острова
+  var IL = LY.isl.len, IW = LY.isl.w;
+  LY.islands.forEach(function (cx) {
+    [-0.8, 0, 0.8].forEach(function (ox) { [-1, 1].forEach(function (s) { var cz = s * (IW / 2 + 0.33); rect(cx + ox - 0.2, cz - 0.2, cx + ox + 0.2, cz + 0.2, 'p-chair', 'rx="8"'); }); });
+    rect(cx - IL / 2, -IW / 2, cx + IL / 2, IW / 2, 'p-isl');
+    line(cx - IL / 2 + 0.2, 0, cx + IL / 2 - 0.2, 0, 'p-spine');
+  });
+  // учебный фронт
+  var sc = LY.screen, dk = LY.desk, pj = LY.projector, bd = LY.board;
+  o.push('<path class="p-beam" d="M' + X(pj.x) + ' ' + Y(pj.z) + ' L' + X(-HL) + ' ' + Y(sc.z0) + ' M' + X(pj.x) + ' ' + Y(pj.z) + ' L' + X(-HL) + ' ' + Y(sc.z1) + '"/>');
+  rect(-HL, sc.z0, -HL + 0.14, sc.z1, 'p-screen');
+  rect(-HL, bd.z0, -HL + 0.1, bd.z1, 'p-board');
+  rect(pj.x - 0.19, pj.z - 0.16, pj.x + 0.19, pj.z + 0.16, 'p-proj');
+  rect(dk.x0, dk.z0, dk.x1, dk.z1, 'p-isl');
+  circ(dk.x0 - 0.38, (dk.z0 + dk.z1) / 2, 0.21, 'p-chair');
+  rect(-HL, LY.coffee.z0, -HL + 0.6, LY.coffee.z1, 'p-furn');
+  text(X(-HL) + 14, Y(sc.z0) + 4, 'экран 2,4 м', 'p-t', 'dominant-baseline="hanging"');
+  text(X(pj.x), Y(pj.z) - 22, 'проектор', 'p-t', 'text-anchor="middle"');
+  // лаунж
+  hex(LY.rug.x, LY.rug.z, LY.rug.r, 'p-rug');
+  hex(LY.table[0], LY.table[1], LY.table[2], 'p-isl');
+  LY.bags.forEach(function (b) { circ(b[0], b[1], 0.42, '', b[2]); });
+  rect(HL - 0.26, LY.shelf.z0, HL, LY.shelf.z1, 'p-furn');
+  var A = LY.arcade;
+  o.push('<rect class="p-acc" x="' + (X(A.x) - 0.43 * S) + '" y="' + (Y(A.z) - 0.33 * S) + '" width="' + (0.86 * S) + '" height="' + (0.66 * S) + '" transform="rotate(' + (-A.rot * 180 / Math.PI).toFixed(1) + ' ' + X(A.x) + ' ' + Y(A.z) + ')"/>');
+  // размеры
+  var yT = Y(-HW - 0.2) - 34;
+  o.push('<path class="p-dim" d="M' + X(-HL) + ' ' + yT + ' H' + X(HL) + ' M' + X(-HL) + ' ' + (yT - 8) + ' v16 M' + X(HL) + ' ' + (yT - 8) + ' v16"/>');
+  text((X(-HL) + X(HL)) / 2, yT - 10, (LY.L * 1000).toLocaleString('ru-RU') + ' мм', 'p-t', 'text-anchor="middle"');
+  var xLd = X(-HL - 0.2) - 34, my = (Y(-HW) + Y(HW)) / 2;
+  o.push('<path class="p-dim" d="M' + xLd + ' ' + Y(-HW) + ' V' + Y(HW) + ' M' + (xLd - 8) + ' ' + Y(-HW) + ' h16 M' + (xLd - 8) + ' ' + Y(HW) + ' h16"/>');
+  text(xLd - 10, my, (LY.W * 1000).toLocaleString('ru-RU'), 'p-t', 'text-anchor="middle" transform="rotate(-90 ' + (xLd - 10) + ' ' + my + ')"');
+  var yB = Y(HW + 0.2) + 34;
+  LY.zones.forEach(function (zn) {
+    o.push('<path class="p-dim" d="M' + X(zn.x0) + ' ' + yB + ' H' + X(zn.x1) + ' M' + X(zn.x0) + ' ' + (yB - 8) + ' v16 M' + X(zn.x1) + ' ' + (yB - 8) + ' v16"/>');
+    text((X(zn.x0) + X(zn.x1)) / 2, yB + 26, zn.name + ' · ' + zn.len, 'p-tz', 'text-anchor="middle"');
+  });
+  // номера
+  window.FEATURES.forEach(function (f) {
+    var x = Math.max(-HL + 0.25, Math.min(HL - 0.25, f.p[0])), z = Math.max(-HW + 0.15, Math.min(HW - 0.15, f.p[2]));
+    if (f.n === 4) { z = 0.75; }
+    if (f.n === 1) { z = -0.25; }
+    if (f.n === 3) { z = -0.02; }
+    if (f.n === 5) { z = -HW + 0.45; }
+    if (f.n === 2) { z = -HW + 0.12; }
+    o.push('<g class="p-num"><circle cx="' + X(x) + '" cy="' + Y(z) + '" r="14"/><text x="' + X(x) + '" y="' + Y(z) + '">' + f.n + '</text></g>');
+  });
+  svg.innerHTML = o.join('');
+  document.getElementById('legend').innerHTML = window.FEATURES.map(function (f) {
+    return '<li><span class="n">' + f.n + '</span><div><b>' + f.t + '</b><span class="d">' + f.d + '</span></div></li>';
+  }).join('');
+})();
+
+(function budget() {
+  var B = window.BUDGET;
+  var TIERS = [
+    { id: 'min', name: 'Минимум', sub: 'Своими силами: краска, лента, мешки, существующая мебель' },
+    { id: 'opt', name: 'Оптимум', sub: 'Рекомендуем: подрядчик на отделку, новые столы, свет и пол' },
+    { id: 'max', name: 'Максимум', sub: 'Под ключ: дорогая отделка, кабина для звонков, моторизованный экран' }
+  ];
+  var cur = 'opt';
+  var off = { min: new Set(), opt: new Set(), max: new Set() };
+  var tiersEl = document.getElementById('tiers'), tbody = document.getElementById('tbody'), sumEl = document.getElementById('summary');
+  function fmt(n) { return Math.round(n).toLocaleString('ru-RU') + ' ₽'; }
+  function short(n) {
+    if (n >= 1e6) return (Math.round(n / 1e4) / 100).toLocaleString('ru-RU', { maximumFractionDigits: 2 }) + ' млн ₽';
+    return Math.round(n / 1000).toLocaleString('ru-RU') + ' тыс. ₽';
+  }
+  function calc(t, ignoreOff) {
+    var items = 0;
+    B.forEach(function (c, ci) { c.items.forEach(function (it, ii) { var s = it[t]; if (s && (ignoreOff || !off[t].has(ci + '-' + ii))) items += s[0] * s[1]; }); });
+    var del = Math.round(items * 0.06), res = Math.round(items * 0.10);
+    return { items: items, del: del, res: res, total: items + del + res };
+  }
+  function renderTiers() {
+    tiersEl.innerHTML = TIERS.map(function (t) {
+      return '<button type="button" class="tier" data-tier="' + t.id + '" aria-pressed="' + (t.id === cur) + '"><span class="t-name">' + t.name + '</span><span class="t-sum" data-sum="' + t.id + '">≈ ' + short(calc(t.id).total) + '</span><span class="t-sub">' + t.sub + '</span></button>';
+    }).join('');
+  }
+  function renderTable() {
+    var html = '';
+    B.forEach(function (c, ci) {
+      var rows = c.items.map(function (it, ii) { return { it: it, ii: ii, s: it[cur] }; }).filter(function (r) { return r.s; });
+      if (!rows.length) return;
+      html += '<tr class="cat"><th colspan="2" scope="rowgroup">' + c.cat + '</th><td class="c-q"></td><td class="c-p"></td><td class="num" data-cat="' + ci + '"></td></tr>';
+      rows.forEach(function (r) {
+        var key = ci + '-' + r.ii, isOff = off[cur].has(key), id = 'b-' + key, s = r.s;
+        var qty = s[0].toLocaleString('ru-RU') + (s[3] ? ' ' + s[3] : '');
+        var price = s[1] === 0 ? '—' : fmt(s[1]);
+        html += '<tr class="' + (isOff ? 'off' : '') + '" data-row="' + key + '"><td class="chk"><input type="checkbox" id="' + id + '" data-key="' + key + '"' + (isOff ? '' : ' checked') + '></td>' +
+          '<td class="item"><label for="' + id + '"><span class="nm">' + r.it.n + '</span><span class="spec">' + s[2] + '</span><span class="qp">' + qty + (s[1] ? ' × ' + price : '') + '</span></label></td>' +
+          '<td class="num c-q">' + qty + '</td><td class="num c-p">' + price + '</td><td class="num sum">' + fmt(s[0] * s[1]) + '</td></tr>';
+      });
+    });
+    tbody.innerHTML = html;
+    updateNumbers();
+  }
+  function updateNumbers() {
+    tbody.querySelectorAll('[data-cat]').forEach(function (td) {
+      var ci = +td.getAttribute('data-cat'), sub = 0;
+      B[ci].items.forEach(function (it, ii) { var s = it[cur]; if (s && !off[cur].has(ci + '-' + ii)) sub += s[0] * s[1]; });
+      td.textContent = fmt(sub);
+    });
+    TIERS.forEach(function (t) { var el = tiersEl.querySelector('[data-sum="' + t.id + '"]'); if (el) el.textContent = '≈ ' + short(calc(t.id).total); });
+    var r = calc(cur), n = off[cur].size;
+    sumEl.innerHTML = '<div><span>Позиции</span><span>' + fmt(r.items) + '</span></div>' +
+      '<div><span>Доставка и сборка, 6 %</span><span>' + fmt(r.del) + '</span></div>' +
+      '<div><span>Резерв, 10 %</span><span>' + fmt(r.res) + '</span></div>' +
+      '<div class="total"><span>Итого, вариант «' + TIERS.filter(function (t) { return t.id === cur; })[0].name + '»</span><span>' + fmt(r.total) + '</span></div>' +
+      (n ? '<button type="button" class="btn" id="reset">Вернуть ' + n + ' ' + plural(n, ['позицию', 'позиции', 'позиций']) + '</button>' : '');
+  }
+  function plural(n, f) { var m10 = n % 10, m100 = n % 100; return m10 === 1 && m100 !== 11 ? f[0] : (m10 >= 2 && m10 <= 4 && (m100 < 10 || m100 >= 20) ? f[1] : f[2]); }
+  tiersEl.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-tier]'); if (!b) return;
+    cur = b.getAttribute('data-tier');
+    tiersEl.querySelectorAll('[data-tier]').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    renderTable();
+  });
+  tbody.addEventListener('change', function (e) {
+    var key = e.target.getAttribute('data-key'); if (!key) return;
+    if (e.target.checked) off[cur].delete(key); else off[cur].add(key);
+    e.target.closest('tr').classList.toggle('off', !e.target.checked);
+    updateNumbers();
+  });
+  sumEl.addEventListener('click', function (e) { if (e.target.id === 'reset') { off[cur].clear(); renderTable(); } });
+  renderTiers(); renderTable();
+  var lo = calc('min', true).total, hi = calc('max', true).total;
+  document.getElementById('hero-range').textContent = (Math.round(lo / 1e4) / 100).toLocaleString('ru-RU') + '–' + (Math.round(hi / 1e4) / 100).toLocaleString('ru-RU') + ' млн ₽';
+
+  document.querySelectorAll('[data-scene-mode]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      window.dispatchEvent(new CustomEvent('lofi:mode', { detail: b.getAttribute('data-scene-mode') }));
+      var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      document.getElementById('viewer').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    });
+  });
+})();
+</script>
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+
+const LY = window.LAYOUT, FEATURES = window.FEATURES, H = LY.H;
+const viewerEl = document.getElementById('viewer');
+const canvas = document.getElementById('scene');
+const labelsEl = document.getElementById('labels');
+const loadingEl = document.getElementById('loading');
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+let ANISO = 4;
+
+function rng(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const R = rng(42);
+
+// ---------- materials
+const mats = new Map();
+function M(color, rough = 0.8, metal = 0, flat = false) {
+  const k = color + '|' + rough + '|' + metal + '|' + flat;
+  if (!mats.has(k)) mats.set(k, new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: metal, flatShading: flat }));
+  return mats.get(k);
+}
+const glows = [], gcache = new Map();
+function G(color, key) {
+  const k = color + '|' + key;
+  if (gcache.has(k)) return gcache.get(k);
+  const m = new THREE.MeshBasicMaterial({ color });
+  glows.push({ m, base: new THREE.Color(color), key, ph: glows.length * 0.137 });
+  gcache.set(k, m); return m;
+}
+function GT(map, key, opts = {}) {
+  const m = new THREE.MeshBasicMaterial({ map, transparent: true, depthWrite: false, ...opts });
+  glows.push({ m, base: new THREE.Color('#ffffff'), key, ph: 0 }); return m;
+}
+
+// ---------- geometry helpers
+function put(parent, geo, mat, x = 0, y = 0, z = 0, ry = 0) { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); m.rotation.y = ry; parent.add(m); return m; }
+function box(parent, w, h, d, mat, x, y0, z, ry = 0) { return put(parent, new THREE.BoxGeometry(w, h, d), mat, x, y0 + h / 2, z, ry); }
+function cyl(parent, rt, rb, h, seg, mat, x, y0, z) { return put(parent, new THREE.CylinderGeometry(rt, rb, h, seg), mat, x, y0 + h / 2, z); }
+function sph(parent, r, mat, x, y, z, ws = 16, hs = 12) { return put(parent, new THREE.SphereGeometry(r, ws, hs), mat, x, y, z); }
+function plane(parent, w, h, mat, x, y, z, ry = 0) { return put(parent, new THREE.PlaneGeometry(w, h), mat, x, y, z, ry); }
+
+// ---------- canvas textures
+function cvs(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return [c, c.getContext('2d')]; }
+function tex(c, { repeat, srgb = true } = {}) {
+  const t = new THREE.CanvasTexture(c);
+  if (srgb) t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = ANISO;
+  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat[0], repeat[1]); }
+  return t;
+}
+const MONO = '"JetBrains Mono", ui-monospace, monospace', DISP = 'Tektur, "Golos Text", sans-serif', BODY = '"Golos Text", system-ui, sans-serif';
+
+function carpetTex(L, W) {
+  const [c, g] = cvs(1024, 1024), T = 128, r = rng(11);
+  for (let i = 0; i < 8; i++) for (let j = 0; j < 8; j++) {
+    const x = i * T, y = j * T, acc = r() < 0.07, b = acc ? [64, 50, 82] : [44, 46, 64], v = (r() - 0.5) * 8;
+    g.fillStyle = `rgb(${b[0] + v},${b[1] + v},${b[2] + v})`; g.fillRect(x, y, T, T);
+    g.strokeStyle = 'rgba(255,255,255,0.05)'; g.lineWidth = 2;
+    const hz = (i + j) % 2 === 0;
+    for (let k = 4; k < T; k += 7) { g.beginPath(); if (hz) { g.moveTo(x, y + k); g.lineTo(x + T, y + k); } else { g.moveTo(x + k, y); g.lineTo(x + k, y + T); } g.stroke(); }
+    g.strokeStyle = 'rgba(0,0,0,0.35)'; g.strokeRect(x + 1, y + 1, T - 2, T - 2);
+  }
+  return tex(c, { repeat: [L / 4, W / 4] });
+}
+
+function codeTex(seed) {
+  const [c, g] = cvs(512, 300), r = rng(seed);
+  g.fillStyle = '#0d1022'; g.fillRect(0, 0, 512, 300);
+  g.fillStyle = '#181b33'; g.fillRect(0, 0, 512, 22);
+  ['#ff5f6d', '#ffc37d', '#5dff9b'].forEach((col, i) => { g.fillStyle = col; g.beginPath(); g.arc(14 + i * 16, 11, 4, 0, 7); g.fill(); });
+  g.fillStyle = '#14172c'; g.fillRect(0, 22, 40, 278);
+  const cols = ['#ff7eb6', '#73e6dc', '#ffc37d', '#9d7bff', '#c9c3dc', '#c9c3dc'];
+  let ind = 0;
+  for (let y = 34; y < 292; y += 13) {
+    if (r() < 0.12) continue;
+    ind = Math.max(0, Math.min(4, ind + (r() < 0.3 ? 1 : 0) - (r() < 0.25 ? 1 : 0)));
+    let x = 50 + ind * 18; const n = 1 + Math.floor(r() * 4);
+    for (let k = 0; k < n; k++) { const w = 14 + r() * 70; g.fillStyle = cols[Math.floor(r() * cols.length)]; g.globalAlpha = 0.85; g.fillRect(x, y, w, 6); x += w + 8; if (x > 480) break; }
+    g.globalAlpha = 0.35; g.fillStyle = '#8a86a6'; g.fillRect(14, y, 16, 5); g.globalAlpha = 1;
+  }
+  return tex(c);
+}
+
+function arcadeScreenTex() {
+  const [c, g] = cvs(256, 288), r = rng(5);
+  g.fillStyle = '#05040c'; g.fillRect(0, 0, 256, 288);
+  for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(255,255,255,${0.2 + r() * 0.6})`; g.fillRect(r() * 256 | 0, r() * 288 | 0, 1, 1); }
+  const inv = ['00100000100', '00010001000', '00111111100', '01101110110', '11111111111', '10111111101', '10100000101', '00011011000'];
+  const cols = ['#ff7eb6', '#73e6dc', '#ffc37d', '#9d7bff'];
+  for (let row = 0; row < 4; row++) for (let col = 0; col < 6; col++) {
+    const ox = 22 + col * 36, oy = 50 + row * 28; g.fillStyle = cols[row];
+    inv.forEach((ln, yy) => { for (let xx = 0; xx < 11; xx++) if (ln[xx] === '1') g.fillRect(ox + xx * 2, oy + yy * 2, 2, 2); });
+  }
+  g.fillStyle = '#5dff9b'; [36, 100, 164, 228].forEach(x => g.fillRect(x - 14, 222, 28, 10));
+  g.fillRect(118, 254, 22, 8); g.fillRect(126, 248, 6, 6);
+  g.font = `600 14px ${MONO}`; g.fillStyle = '#fff'; g.fillText('1UP 00420', 10, 22); g.fillText('HI 13370', 166, 22);
+  return tex(c);
+}
+
+function marqueeTex() {
+  const [c, g] = cvs(512, 170);
+  const gr = g.createLinearGradient(0, 0, 512, 0); gr.addColorStop(0, '#2a1352'); gr.addColorStop(1, '#7b2a8e');
+  g.fillStyle = gr; g.fillRect(0, 0, 512, 170);
+  g.strokeStyle = 'rgba(255,255,255,0.14)'; g.lineWidth = 2;
+  for (let x = -256; x < 768; x += 40) { g.beginPath(); g.moveTo(256 + (x - 256) * 0.35, 118); g.lineTo(x, 170); g.stroke(); }
+  for (let y = 122; y < 170; y += 12) { g.beginPath(); g.moveTo(0, y); g.lineTo(512, y); g.stroke(); }
+  g.font = `700 62px ${DISP}`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.shadowColor = '#ff7eb6'; g.shadowBlur = 18; g.fillStyle = '#ffe6f2'; g.fillText('ИТС ARCADE', 256, 66);
+  return tex(c);
+}
+
+function sideArtTex() {
+  const [c, g] = cvs(344, 744);
+  g.fillStyle = '#1b1830'; g.fillRect(0, 0, 344, 744);
+  g.fillStyle = '#ff7eb6'; g.beginPath(); g.arc(250, 150, 58, 0, 7); g.fill();
+  g.lineWidth = 26;
+  [['#ff7eb6', 0], ['#ffc37d', 44], ['#73e6dc', 88]].forEach(([col, o]) => { g.strokeStyle = col; g.beginPath(); g.moveTo(-20, 600 + o); g.lineTo(380, 250 + o); g.stroke(); });
+  const t = tex(c); t.repeat.set(1 / 0.86, 1 / 1.86); return t;
+}
+
+function signTex(text, w, h, font, color, core, blur) {
+  const [c, g] = cvs(w, h);
+  g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.shadowColor = color; g.shadowBlur = blur; g.fillStyle = color;
+  g.fillText(text, w / 2, h / 2); g.fillText(text, w / 2, h / 2);
+  g.shadowBlur = blur * 0.3; g.fillStyle = core; g.fillText(text, w / 2, h / 2);
+  return { t: tex(c), width: g.measureText(text).width };
+}
+
+function muralTex() {
+  const W = 2048, Hh = 956, hz = 640, [c, g] = cvs(W, Hh), r = rng(3);
+  const sky = g.createLinearGradient(0, 0, 0, hz);
+  sky.addColorStop(0, '#15133a'); sky.addColorStop(0.42, '#352262'); sky.addColorStop(0.74, '#9c4280'); sky.addColorStop(1, '#ff9a78');
+  g.fillStyle = sky; g.fillRect(0, 0, W, hz);
+  for (let i = 0; i < 120; i++) { g.fillStyle = `rgba(255,235,255,${0.2 + r() * 0.5})`; const s = r() < 0.1 ? 3 : 2; g.fillRect(r() * W, r() * 300, s, s); }
+  const sx = 1024, sy = 560, sr = 200;
+  const sg = g.createLinearGradient(0, sy - sr, 0, sy + sr); sg.addColorStop(0, '#ffe28c'); sg.addColorStop(0.6, '#ff8f7a'); sg.addColorStop(1, '#ff5f9a');
+  g.fillStyle = sg; g.beginPath(); g.arc(sx, sy, sr, 0, Math.PI * 2); g.fill();
+  g.fillStyle = sky; for (let k = 0; k < 7; k++) g.fillRect(sx - sr - 2, sy - 8 + k * 24 + k * k * 2, sr * 2 + 4, 4 + k * 2.4);
+  [[11, 250, '#5a2e6c'], [12, 190, '#3e2259'], [13, 120, '#261a46']].forEach(([seed, amp, col]) => {
+    const rr = rng(seed), pts = [];
+    for (let x = -60; x <= W + 60; x += 110 + rr() * 60) { const e = Math.min(1, Math.abs(x - W / 2) / (W * 0.42)); pts.push([x, hz - (0.12 + 0.88 * e * e) * amp * (0.6 + rr() * 0.5)]); }
+    pts.push([W + 200, hz - amp * 0.9]);
+    g.fillStyle = col; g.beginPath(); g.moveTo(pts[0][0], hz); pts.forEach(p => g.lineTo(p[0], p[1])); g.lineTo(pts[pts.length - 1][0], hz); g.closePath(); g.fill();
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x1, y1] = pts[i], [x2, y2] = pts[i + 1];
+      g.fillStyle = i % 2 ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.13)';
+      g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.lineTo((x1 + x2) / 2 + (rr() - 0.5) * 60, hz); g.closePath(); g.fill();
+    }
+  });
+  const sea = g.createLinearGradient(0, hz, 0, Hh); sea.addColorStop(0, '#3b2358'); sea.addColorStop(1, '#110e24');
+  g.fillStyle = sea; g.fillRect(0, hz, W, Hh - hz);
+  for (let k = 0; k < 13; k++) { const y = hz + 10 + k * 14 + k * k * 1.4, w = sr * 1.8 * (1 - k / 15); g.fillStyle = `rgba(255,${170 - k * 5},150,${0.5 - k * 0.03})`; g.fillRect(sx - w / 2 + (r() - 0.5) * 24, y, w, 3 + k * 0.5); }
+  const col = '#120f28', deckY = hz - 46; g.fillStyle = col; g.strokeStyle = col;
+  g.fillRect(300, deckY, 1450, 12);
+  g.beginPath(); g.moveTo(sx - 80, hz + 6); g.lineTo(sx - 9, 262); g.lineTo(sx + 9, 262); g.lineTo(sx + 80, hz + 6); g.lineTo(sx + 58, hz + 6); g.lineTo(sx, 330); g.lineTo(sx - 58, hz + 6); g.closePath(); g.fill();
+  g.lineWidth = 2;
+  for (let k = 1; k <= 10; k++) { const t = k / 10, y0 = 290 + k * 5; g.beginPath(); g.moveTo(sx, y0); g.lineTo(sx - t * 680, deckY); g.moveTo(sx, y0); g.lineTo(sx + t * 680, deckY); g.stroke(); }
+  for (let x = 310; x < 1745; x += 22) { g.fillStyle = '#ffc37d'; g.fillRect(x, deckY + 4, 5, 3); }
+  g.lineWidth = 4; g.strokeStyle = 'rgba(255,255,255,0.09)';
+  g.beginPath(); g.moveTo(120, Hh); g.lineTo(470, 140); g.lineTo(820, Hh); g.stroke();
+  g.beginPath(); g.moveTo(1300, Hh); g.lineTo(1660, 90); g.lineTo(2020, Hh); g.stroke();
+  const tri = (x, y, s, fc, rot) => { g.save(); g.translate(x, y); g.rotate(rot); g.fillStyle = fc; g.beginPath(); g.moveTo(0, -s); g.lineTo(s * 0.87, s * 0.5); g.lineTo(-s * 0.87, s * 0.5); g.closePath(); g.fill(); g.restore(); };
+  tri(260, 210, 26, 'rgba(115,230,220,0.75)', 0.3); tri(1820, 300, 20, 'rgba(255,126,182,0.8)', 1.1); tri(1610, 760, 30, 'rgba(255,195,125,0.6)', 0.6); tri(380, 790, 18, 'rgba(157,123,255,0.8)', 2);
+  return tex(c);
+}
+
+function panoTex(night) {
+  const W = 2400, Hh = 432, hz = 251, [c, g] = cvs(W, Hh), r = rng(night ? 21 : 22);
+  const sky = g.createLinearGradient(0, 0, 0, hz);
+  if (night) { sky.addColorStop(0, '#0e0f2e'); sky.addColorStop(0.55, '#2b2058'); sky.addColorStop(0.88, '#7d3c7a'); sky.addColorStop(1, '#ec8f8c'); }
+  else { sky.addColorStop(0, '#78b2e8'); sky.addColorStop(1, '#e4f0fa'); }
+  g.fillStyle = sky; g.fillRect(0, 0, W, hz);
+  if (night) for (let i = 0; i < 160; i++) { g.fillStyle = `rgba(255,240,255,${0.3 + r() * 0.6})`; g.fillRect(r() * W, 90 + r() * 110, 2, 2); }
+  g.fillStyle = night ? '#1c1736' : '#8a9db3'; g.beginPath(); g.moveTo(0, hz);
+  const ridge = [];
+  for (let x = 0; x <= W; x += 30) { const y = hz - 16 - Math.abs(Math.sin(x * 0.0032 + 0.6)) * 38 - r() * 8; ridge.push([x, y]); g.lineTo(x, y); }
+  g.lineTo(W, hz); g.closePath(); g.fill();
+  if (night) for (let i = 0; i < 420; i++) { const [x, y] = ridge[Math.floor(r() * ridge.length)]; g.fillStyle = r() < 0.75 ? '#ffc98a' : '#fff1de'; g.fillRect(x + r() * 30, y + 3 + r() * (hz - y - 3), 2, 2); }
+  const sea = g.createLinearGradient(0, hz, 0, Hh);
+  if (night) { sea.addColorStop(0, '#2c2052'); sea.addColorStop(1, '#0c0a1c'); } else { sea.addColorStop(0, '#6c9cc6'); sea.addColorStop(1, '#3e6f9c'); }
+  g.fillStyle = sea; g.fillRect(0, hz, W, Hh - hz);
+  const deckY = hz - 20, top = 112, col = night ? '#0b0a18' : '#f4f4f8';
+  g.strokeStyle = col; g.fillStyle = col; g.fillRect(560, deckY, 1180, 7);
+  for (const px of [864, 1440]) {
+    g.lineWidth = 7; g.beginPath(); g.moveTo(px - 26, hz + 2); g.lineTo(px, top); g.lineTo(px + 26, hz + 2); g.stroke();
+    g.lineWidth = 1.3;
+    for (let k = 1; k <= 8; k++) { const t = k / 8, yy = top + 12 + k * 5; g.beginPath(); g.moveTo(px, yy); g.lineTo(px - t * 270, deckY); g.moveTo(px, yy); g.lineTo(px + t * 270, deckY); g.stroke(); }
+    if (night) { g.fillStyle = '#ff4d5e'; g.fillRect(px - 3, top - 6, 6, 6); g.fillStyle = col; }
+  }
+  if (night) for (let x = 570; x < 1735; x += 14) { g.fillStyle = '#ffc37d'; g.fillRect(x, deckY + 2, 3, 2); g.fillStyle = 'rgba(255,195,125,0.25)'; g.fillRect(x, hz + 4 + r() * 6, 2, 20 + r() * 30); }
+  for (let x = 0; x < W;) {
+    const bw = 30 + r() * 70, bh = 40 + r() * 90, y = Hh - bh;
+    g.fillStyle = night ? '#100d20' : '#c5c9d6'; g.fillRect(x, y, bw, bh);
+    for (let wy = y + 8; wy < Hh - 6; wy += 11) for (let wx = x + 6; wx < x + bw - 6; wx += 10) if (r() < (night ? 0.35 : 0.5)) { g.fillStyle = night ? (r() < 0.8 ? '#ffcf8f' : '#bfe3ff') : '#8d9ab0'; g.fillRect(wx, wy, 5, 6); }
+    x += bw + 2 + r() * 8;
+  }
+  return tex(c);
+}
+
+function stencilTex() {
+  const W = 1536, Hh = 717, [c, g] = cvs(W, Hh);
+  g.fillStyle = '#77739a'; g.fillRect(0, 0, W, Hh);
+  const poly = (fc, pts) => { g.fillStyle = fc; g.beginPath(); pts.forEach((p, i) => i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1])); g.closePath(); g.fill(); };
+  poly('#2f3a66', [[0, Hh], [0, 150], [560, Hh]]);
+  poly('#ff7eb6', [[0, Hh], [0, 420], [300, Hh]]);
+  poly('#3d9c98', [[330, Hh], [470, Hh], [760, 300], [620, 300]]);
+  g.strokeStyle = '#ffc37d'; g.lineWidth = 8;
+  for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(560 + k * 36, Hh); g.lineTo(860 + k * 36, 250); g.stroke(); }
+  poly('#2f3a66', [[W, 0], [W - 420, 0], [W, 300]]);
+  poly('#c9809f', [[W, 0], [W - 180, 0], [W, 130]]);
+  return tex(c);
+}
+
+function tvTex() {
+  const [c, g] = cvs(640, 360);
+  g.fillStyle = '#0f1124'; g.fillRect(0, 0, 640, 360);
+  g.font = `600 26px ${MONO}`; g.fillStyle = '#ff7eb6'; g.fillText('localhost', 24, 46);
+  g.font = `500 16px ${BODY}`; g.fillStyle = '#a49cbe'; g.fillText('ИТС ВВГУ · коворкинг', 200, 44);
+  g.textAlign = 'right'; g.font = `600 22px ${MONO}`; g.fillStyle = '#efe9f8'; g.fillText('18:40', 616, 46); g.textAlign = 'left';
+  g.fillStyle = '#a49cbe'; g.font = `500 18px ${BODY}`; g.fillText('Свободно мест', 24, 100);
+  g.font = `600 110px ${MONO}`; g.fillStyle = '#73e6dc'; g.fillText('14', 20, 206);
+  g.font = `400 40px ${MONO}`; g.fillStyle = '#a49cbe'; g.fillText('/ 40', 172, 204);
+  const free = new Set([2, 5, 9, 11, 14, 17, 18, 23, 27, 30, 33, 36, 38, 39]);
+  for (let i = 0; i < 40; i++) {
+    const x = 336 + (i % 10) * 28, y = 84 + Math.floor(i / 10) * 28;
+    if (free.has(i)) { g.strokeStyle = '#73e6dc'; g.lineWidth = 2; g.strokeRect(x + 1, y + 1, 18, 18); } else { g.fillStyle = '#ff7eb6'; g.fillRect(x, y, 20, 20); }
+  }
+  g.fillStyle = '#6ee7a0'; g.beginPath(); g.arc(32, 262, 7, 0, 7); g.fill();
+  g.fillStyle = '#efe9f8'; g.font = `500 20px ${BODY}`; g.fillText('Шум 41 дБ · тихо', 48, 269);
+  g.fillStyle = '#a49cbe'; g.font = `400 16px ${BODY}`; g.fillText('Сейчас играет: lo-fi beats to code to', 24, 312);
+  g.fillStyle = '#332d4a'; g.fillRect(24, 326, 592, 4); g.fillStyle = '#ff7eb6'; g.fillRect(24, 326, 230, 4);
+  return tex(c);
+}
+
+function slideTex() {
+  const [c, g] = cvs(1024, 640);
+  g.fillStyle = '#f6f3fb'; g.fillRect(0, 0, 1024, 640);
+  g.fillStyle = '#2b2050'; g.fillRect(0, 0, 1024, 12);
+  g.font = `600 22px ${MONO}`; g.fillStyle = '#9d7bff'; g.fillText('ИТС ВВГУ · Веб-разработка · пара 3', 56, 70);
+  g.font = `700 54px ${DISP}`; g.fillStyle = '#1b1830'; g.fillText('Хуки в React: useEffect', 56, 140);
+  g.font = `500 26px ${BODY}`; g.fillStyle = '#3a3650';
+  ['Когда эффект запускается', 'Массив зависимостей', 'Очистка подписок'].forEach((t, i) => { g.fillStyle = '#ff7eb6'; g.fillRect(58, 205 + i * 52, 12, 12); g.fillStyle = '#3a3650'; g.fillText(t, 86, 220 + i * 52); });
+  g.fillStyle = '#16183a'; g.fillRect(560, 190, 410, 300);
+  g.font = `400 21px ${MONO}`;
+  [['useEffect(() => {', '#73e6dc'], ['  const id = setInterval(', '#efe9f8'], ['    tick, 1000);', '#efe9f8'], ['  return () =>', '#ff7eb6'], ['    clearInterval(id);', '#efe9f8'], ['}, []);', '#73e6dc']].forEach(([t, col], i) => { g.fillStyle = col; g.fillText(t, 584, 236 + i * 40); });
+  g.font = `500 20px ${MONO}`; g.fillStyle = '#a49cbe'; g.fillText('14 / 32', 900, 600);
+  return tex(c);
+}
+
+function boardTex() {
+  const [c, g] = cvs(600, 650);
+  g.fillStyle = '#f7f6fb'; g.fillRect(0, 0, 600, 650);
+  g.lineCap = 'round'; g.lineJoin = 'round';
+  const pen = (col, w) => { g.strokeStyle = col; g.fillStyle = col; g.lineWidth = w; };
+  pen('#2b2050', 5); g.font = `600 40px ${BODY}`; g.fillText('Хакатон: идеи', 40, 70);
+  pen('#ff4f9a', 4); g.strokeRect(50, 120, 150, 80); g.strokeRect(330, 120, 170, 80); g.strokeRect(190, 300, 170, 80);
+  g.font = `500 30px ${MONO}`; g.fillText('бот', 95, 172); g.fillText('API', 385, 172); g.fillText('БД', 248, 352);
+  pen('#2f7fd0', 4);
+  [[200, 160, 330, 160], [125, 200, 230, 300], [415, 200, 330, 300]].forEach(([a, b, c2, d2]) => { g.beginPath(); g.moveTo(a, b); g.lineTo(c2, d2); g.stroke(); const an = Math.atan2(d2 - b, c2 - a); g.beginPath(); g.moveTo(c2, d2); g.lineTo(c2 - 16 * Math.cos(an - 0.4), d2 - 16 * Math.sin(an - 0.4)); g.moveTo(c2, d2); g.lineTo(c2 - 16 * Math.cos(an + 0.4), d2 - 16 * Math.sin(an + 0.4)); g.stroke(); });
+  pen('#1d9a6c', 4); g.font = `500 28px ${BODY}`;
+  ['✓ места в коворкинге', '✓ шумосветофор', '— бронь на сессию'].forEach((t, i) => g.fillText(t, 50, 470 + i * 46));
+  return tex(c);
+}
+
+function posterTex(kind) {
+  const [c, g] = cvs(400, 560);
+  g.textAlign = 'center';
+  if (kind === 0) {
+    g.fillStyle = '#ffc37d'; g.fillRect(0, 0, 400, 560);
+    g.fillStyle = '#ff7eb6'; g.beginPath(); g.arc(200, 210, 130, 0, 7); g.fill();
+    g.fillStyle = '#2b2050'; g.font = `700 92px ${DISP}`; g.fillText('lo-fi', 200, 240);
+    g.font = `600 24px ${MONO}`; g.fillText('24 / 7 · ИТС', 200, 410);
+    g.strokeStyle = '#2b2050'; g.lineWidth = 6; g.strokeRect(110, 440, 180, 84);
+    g.beginPath(); g.arc(165, 482, 16, 0, 7); g.stroke(); g.beginPath(); g.arc(235, 482, 16, 0, 7); g.stroke();
+  } else if (kind === 1) {
+    g.fillStyle = '#16183a'; g.fillRect(0, 0, 400, 560);
+    g.textAlign = 'left'; g.font = `600 34px ${MONO}`;
+    [['while (true) {', '#73e6dc'], ['  focus();', '#efe9f8'], ['  chill();', '#ff7eb6'], ['  commit();', '#ffc37d'], ['}', '#73e6dc']].forEach(([s, col], i) => { g.fillStyle = col; g.fillText(s, 40, 150 + i * 62); });
+    g.fillStyle = '#a49cbe'; g.font = `400 18px ${MONO}`; g.fillText('// ИТС ВВГУ', 40, 500);
+  } else {
+    g.fillStyle = '#3d9c98'; g.fillRect(0, 0, 400, 560);
+    g.strokeStyle = '#efe9f8'; g.lineWidth = 6;
+    g.beginPath(); g.moveTo(150, 380); g.lineTo(200, 90); g.lineTo(250, 380); g.stroke();
+    g.lineWidth = 2; for (let k = 1; k <= 7; k++) { g.beginPath(); g.moveTo(200, 110 + k * 8); g.lineTo(200 - k * 26, 330); g.moveTo(200, 110 + k * 8); g.lineTo(200 + k * 26, 330); g.stroke(); }
+    g.fillStyle = '#efe9f8'; g.fillRect(10, 326, 380, 8);
+    g.font = `600 44px ${DISP}`; g.fillText('Владивосток', 200, 450);
+    g.font = `400 18px ${MONO}`; g.fillText('43°07′ с. ш. · 131°53′ в. д.', 200, 492);
+  }
+  return tex(c);
+}
+
+function rugTex() {
+  const [c, g] = cvs(1024, 1024);
+  g.fillStyle = '#3a2b52'; g.fillRect(0, 0, 1024, 1024);
+  const cols = ['#ff7eb6', '#73e6dc', '#ffc37d', '#9d7bff'];
+  g.lineWidth = 12; g.globalAlpha = 0.75;
+  for (let k = 7; k >= 1; k--) {
+    const rr = 500 * k / 7.3; g.strokeStyle = cols[k % 4]; g.beginPath();
+    for (let i = 0; i <= 6; i++) { const a = i * Math.PI / 3, x = 512 + rr * Math.cos(a), y = 512 + rr * Math.sin(a); i ? g.lineTo(x, y) : g.moveTo(x, y); }
+    g.stroke();
+  }
+  g.globalAlpha = 1; return tex(c);
+}
+
+function gradTex() { const [c, g] = cvs(8, 256); const gr = g.createLinearGradient(0, 256, 0, 0); gr.addColorStop(0, '#fff'); gr.addColorStop(0.3, '#777'); gr.addColorStop(1, '#000'); g.fillStyle = gr; g.fillRect(0, 0, 8, 256); return tex(c, { srgb: false }); }
+function shadowTex() { const [c, g] = cvs(128, 128); const gr = g.createRadialGradient(64, 64, 0, 64, 64, 64); gr.addColorStop(0, 'rgba(0,0,0,0.55)'); gr.addColorStop(0.55, 'rgba(0,0,0,0.28)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return tex(c); }
+
+// ---------- merge static meshes by material to keep draw calls low
+function bake(group) {
+  group.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(group.matrixWorld).invert();
+  const buckets = new Map(), done = [];
+  group.traverse(o => {
+    if (!o.isMesh || o.userData.keep || Array.isArray(o.material) || !o.geometry.index || !o.geometry.attributes.uv) return;
+    const g = o.geometry.clone();
+    g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+    for (const name of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(name)) g.deleteAttribute(name);
+    g.clearGroups();
+    if (!buckets.has(o.material)) buckets.set(o.material, []);
+    buckets.get(o.material).push(g); done.push(o);
+  });
+  done.forEach(o => o.parent.remove(o));
+  for (const [mat, geos] of buckets) { const merged = mergeGeometries(geos, false); if (merged) group.add(new THREE.Mesh(merged, mat)); }
+}
+
+async function init() {
+  await Promise.race([
+    Promise.all(['600 64px Tektur', '700 64px Tektur', '300 64px "JetBrains Mono"', '600 64px "JetBrains Mono"', '500 32px "Golos Text"'].map(f => document.fonts.load(f))).catch(() => {}),
+    new Promise(r => setTimeout(r, 2500))
+  ]);
+
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  ANISO = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  RectAreaLightUniformsLib.init();
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#0d0b16');
+  const camera = new THREE.PerspectiveCamera(42, 1, 0.05, 150);
+
+  const HL = LY.L / 2, HW = LY.W / 2;
+  const root = new THREE.Group(); scene.add(root);
+  const furn = new THREE.Group(); root.add(furn);
+  const ceil = new THREE.Group(); root.add(ceil);
+  const walls = {};
+  function wallGroup(name, p, n) { const g = new THREE.Group(); root.add(g); walls[name] = { g, p: new THREE.Vector3(...p), n: new THREE.Vector3(...n) }; return g; }
+  const WN = wallGroup('north', [0, 0, -HW], [0, 0, 1]);
+  const WS = wallGroup('south', [0, 0, HW], [0, 0, -1]);
+  const WW = wallGroup('west', [-HL, 0, 0], [1, 0, 0]);
+  const WE = wallGroup('east', [HL, 0, 0], [-1, 0, 0]);
+  // a — координата вдоль стены (x для N/S, z для W/E), o — отступ от стены
+  const WD = {
+    north: { g: WN, pos: (a, y, o) => [a, y, -HW + o], ry: 0 },
+    south: { g: WS, pos: (a, y, o) => [a, y, HW - o], ry: Math.PI },
+    west: { g: WW, pos: (a, y, o) => [-HL + o, y, a], ry: Math.PI / 2 },
+    east: { g: WE, pos: (a, y, o) => [HL - o, y, a], ry: -Math.PI / 2 }
+  };
+  function onWall(w, mesh, a, y, o) { const d = WD[w]; mesh.position.set(...d.pos(a, y, o)); mesh.rotation.y = d.ry; d.g.add(mesh); return mesh; }
+  function wallBox(w, bw, bh, bd, mat, a, yc) { return onWall(w, new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), mat), a, yc, bd / 2); }
+  function wallPlane(w, pw, ph, mat, a, yc, o = 0.004) { return onWall(w, new THREE.Mesh(new THREE.PlaneGeometry(pw, ph), mat), a, yc, o); }
+  const shadowM = new THREE.MeshBasicMaterial({ map: shadowTex(), transparent: true, depthWrite: false });
+  function blob(x, z, w, d, y = 0.004, ry = 0) { const m = put(furn, new THREE.PlaneGeometry(w, d), shadowM, x, y, z); m.rotation.set(-Math.PI / 2, 0, ry); return m; }
+
+  // ---------- оболочка
+  const floor = put(root, new THREE.PlaneGeometry(LY.L, LY.W), new THREE.MeshStandardMaterial({ map: carpetTex(LY.L, LY.W), roughness: 0.95 }));
+  floor.rotation.x = -Math.PI / 2;
+  box(root, LY.L + 1.4, 0.35, LY.W + 1.4, M('#1a1727', 0.9), 0, -0.356, 0);
+  const edgeM = G('#73e6dc', 'edge');
+  for (const s of [-1, 1]) { box(root, LY.L + 1.4, 0.02, 0.02, edgeM, 0, -0.03, s * (HW + 0.7)); box(root, 0.02, 0.02, LY.W + 1.4, edgeM, s * (HL + 0.7), -0.03, 0); }
+
+  const cutM = M('#d8d2ea', 0.9), faceM = M('#77739a', 0.92), faceEast = M('#2a2846', 0.92);
+  function extrudeWall(shape, g, x, z, ry, face) {
+    const geo = new THREE.ExtrudeGeometry(shape, { depth: 0.2, bevelEnabled: false, curveSegments: 1 });
+    const m = new THREE.Mesh(geo, [face, cutM]); m.position.set(x, 0, z); m.rotation.y = ry; g.add(m); return m;
+  }
+  const d = LY.door, LE = HL + 0.2;
+  const sN = new THREE.Shape();
+  sN.moveTo(-LE, 0); sN.lineTo(d.x0, 0); sN.lineTo(d.x0, d.h); sN.lineTo(d.x1, d.h); sN.lineTo(d.x1, 0); sN.lineTo(LE, 0); sN.lineTo(LE, H); sN.lineTo(-LE, H); sN.closePath();
+  extrudeWall(sN, WN, 0, -HW - 0.2, 0, faceM);
+  const sS = new THREE.Shape();
+  sS.moveTo(-LE, 0); sS.lineTo(LE, 0); sS.lineTo(LE, H); sS.lineTo(-LE, H); sS.closePath();
+  for (const c of LY.windows) { const p = new THREE.Path(); const l = -c - 0.9, rr = -c + 0.9; p.moveTo(l, 0.9); p.lineTo(rr, 0.9); p.lineTo(rr, 2.4); p.lineTo(l, 2.4); p.closePath(); sS.holes.push(p); }
+  extrudeWall(sS, WS, 0, HW + 0.2, Math.PI, faceM);
+  const sWE = () => { const s = new THREE.Shape(); s.moveTo(-HW, 0); s.lineTo(HW, 0); s.lineTo(HW, H); s.lineTo(-HW, H); s.closePath(); return s; };
+  extrudeWall(sWE(), WW, -HL - 0.2, 0, Math.PI / 2, faceM);
+  extrudeWall(sWE(), WE, HL + 0.2, 0, -Math.PI / 2, faceEast);
+
+  // потолок: светлый «армстронг» и тёмный над лаунжем
+  const xL = LY.zones[2].x0;
+  box(ceil, xL + HL, 0.1, LY.W, M('#cfcbdc', 0.9), (xL - HL) / 2, H, 0);
+  box(ceil, HL - xL, 0.1, LY.W, M('#24223a', 0.9), (xL + HL) / 2, H, 0);
+  const gridM = M('#e9e6f1', 0.6);
+  for (let x = -HL + 0.6; x < xL; x += 0.6) box(ceil, 0.02, 0.01, LY.W, gridM, x, H - 0.01, 0);
+  for (let z = -HW + 0.5; z < HW; z += 0.6) box(ceil, xL + HL, 0.01, 0.02, gridM, (xL - HL) / 2, H - 0.01, z);
+
+  // дверь
+  const doorM = M('#3a3650', 0.6), frameM = M('#e9e6f2', 0.5);
+  box(WN, d.x1 - d.x0 - 0.04, d.h - 0.02, 0.05, doorM, (d.x0 + d.x1) / 2, 0, -HW - 0.1);
+  box(WN, 0.05, d.h, 0.24, frameM, d.x0 + 0.025, 0, -HW - 0.1); box(WN, 0.05, d.h, 0.24, frameM, d.x1 - 0.025, 0, -HW - 0.1);
+  box(WN, d.x1 - d.x0, 0.05, 0.24, frameM, (d.x0 + d.x1) / 2, d.h - 0.05, -HW - 0.1);
+  box(WN, 0.14, 0.03, 0.06, M('#c9c3dc', 0.3, 0.8), d.x0 + 0.15, 1.0, -HW - 0.05);
+  box(WN, 0.18, 0.9, 0.01, M('#1b2340', 0.2), d.x1 - 0.3, 1.0, -HW - 0.07);
+
+  // ---------- окна с видом на залив
+  const panoNight = panoTex(true), panoDay = panoTex(false);
+  const winMat = GT(panoNight, 'window', { transparent: false, depthWrite: true });
+  const sillM = M('#d9d4e6', 0.6);
+  for (const c of LY.windows) {
+    const x0 = c - 0.9, x1 = c + 0.9, zf = HW + 0.1;
+    box(WS, 1.8, 0.06, 0.14, frameM, c, 0.9, zf); box(WS, 1.8, 0.06, 0.14, frameM, c, 2.34, zf);
+    box(WS, 0.06, 1.5, 0.14, frameM, x0 + 0.03, 0.9, zf); box(WS, 0.06, 1.5, 0.14, frameM, x1 - 0.03, 0.9, zf);
+    box(WS, 0.05, 1.5, 0.14, frameM, c, 0.9, zf);
+    box(WS, 1.95, 0.03, 0.26, sillM, c, 0.87, HW - 0.07);
+    const geo = new THREE.PlaneGeometry(1.8, 1.5), uv = geo.attributes.uv;
+    const uA = (HL - x1) / LY.L, uB = (HL - x0) / LY.L, vA = 0.6 / 2.7, vB = 2.1 / 2.7;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uA + uv.getX(i) * (uB - uA), vA + uv.getY(i) * (vB - vA));
+    const glass = put(WS, geo, winMat, c, 1.65, HW + 0.12, Math.PI); glass.userData.keep = true;
+  }
+  LY.posters.forEach((a, k) => {
+    wallBox('south', 0.56, 0.76, 0.02, M('#16151f', 0.5), a, 1.85);
+    onWall('south', new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.7), new THREE.MeshStandardMaterial({ map: posterTex(k), roughness: 0.7 })), a, 1.85, 0.022);
+  });
+
+  // ---------- ряды ПК вдоль длинных стен
+  const deskTop = M('#bfb6cf', 0.55), deskSide = M('#3a3650', 0.7), monM = M('#16151f', 0.4), kbM = M('#2a2838', 0.6), towerM = M('#1d1b29', 0.5);
+  const scrA = GT(codeTex(7), 'screen', { transparent: false, depthWrite: true }), scrB = GT(codeTex(19), 'screen', { transparent: false, depthWrite: true });
+  const darkMetal = M('#1f1d2b', 0.5, 0.4), chairFab = M('#2c2a3c', 0.9);
+  function officeChair(x, z, ry) {
+    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; furn.add(g);
+    cyl(g, 0.28, 0.28, 0.03, 5, darkMetal, 0, 0.05, 0);
+    cyl(g, 0.025, 0.025, 0.36, 8, darkMetal, 0, 0.08, 0);
+    box(g, 0.46, 0.07, 0.44, chairFab, 0, 0.43, 0);
+    box(g, 0.44, 0.46, 0.05, chairFab, 0, 0.56, 0.22);
+    box(g, 0.05, 0.16, 0.04, darkMetal, 0, 0.44, 0.2);
+  }
+  const PC = LY.pc, L8 = PC.n * PC.pitch, xc = PC.x0 + L8 / 2;
+  const washTex = gradTex();
+  const stripCols = { north: '#9d6bff', south: '#ff5fa2' };
+  for (const s of [-1, 1]) {
+    const zW = s * HW, dz = -s, wall = s < 0 ? 'north' : 'south', fr = s > 0 ? Math.PI : 0;
+    box(furn, L8, 0.04, 0.65, deskTop, xc, 0.71, zW + dz * 0.325);
+    for (let i = 0; i <= PC.n; i += 2) box(furn, 0.03, 0.71, 0.6, deskSide, PC.x0 + i * PC.pitch + (i === 0 ? 0.015 : i === PC.n ? -0.015 : 0), 0, zW + dz * 0.325);
+    box(furn, L8, 0.4, 0.02, deskSide, xc, 0.31, zW + dz * 0.03);
+    for (let i = 0; i < PC.n; i++) {
+      const x = PC.x0 + PC.pitch * (i + 0.5);
+      box(furn, 0.2, 0.012, 0.16, monM, x, 0.75, zW + dz * 0.17);
+      box(furn, 0.04, 0.2, 0.03, monM, x, 0.76, zW + dz * 0.17);
+      box(furn, 0.56, 0.34, 0.03, monM, x, 0.93, zW + dz * 0.2);
+      put(furn, new THREE.PlaneGeometry(0.53, 0.31), i % 3 === 1 ? scrB : scrA, x, 1.1, zW + dz * 0.217, fr);
+      box(furn, 0.43, 0.02, 0.14, kbM, x, 0.75, zW + dz * 0.47);
+      box(furn, 0.06, 0.02, 0.1, kbM, x + 0.29, 0.75, zW + dz * 0.47);
+      box(furn, 0.18, 0.42, 0.42, towerM, x + 0.3, 0.02, zW + dz * 0.3);
+      officeChair(x + (R() - 0.5) * 0.1, zW + dz * (0.95 + R() * 0.08), fr + (R() - 0.5) * 0.4);
+    }
+    wallBox(wall, L8, 0.018, 0.012, G(stripCols[wall], 'strip'), xc, 0.8);
+    const wash = new THREE.MeshBasicMaterial({ color: stripCols[wall], alphaMap: washTex, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false });
+    glows.push({ m: wash, base: new THREE.Color(stripCols[wall]), key: 'wash', ph: s < 0 ? 0.2 : 0.7 });
+    const wh = s < 0 ? 1.1 : 0.12;
+    wallPlane(wall, L8, wh, wash, xc, 0.78 + wh / 2, 0.005);
+    blob(xc, zW + dz * 0.4, L8 + 0.4, 1.1, 0.004);
+  }
+
+  // ---------- острова для ноутбуков
+  const ply = M('#c89a6a', 0.6), spineM = M('#2a2838', 0.5), socketM = M('#efeaf6', 0.4), usbM = G('#73e6dc', 'led');
+  const chairCols = ['#ff7eb6', '#73e6dc', '#ffc37d', '#9d7bff'].map(c => M(c, 0.55));
+  const aluM = M('#b9b6c6', 0.35, 0.6), mugCols = ['#ff7eb6', '#efe9f8', '#73e6dc', '#ffc37d'].map(c => M(c, 0.5));
+  function shellChair(x, z, ry, mat) {
+    const g = new THREE.Group(); g.position.set(x, 0, z); g.rotation.y = ry; furn.add(g);
+    for (const ex of [-0.17, 0.17]) for (const ez of [-0.17, 0.17]) cyl(g, 0.012, 0.012, 0.44, 6, darkMetal, ex, 0, ez);
+    box(g, 0.42, 0.04, 0.42, mat, 0, 0.44, 0);
+    const back = box(g, 0.4, 0.3, 0.03, mat, 0, 0.6, 0.2); back.rotation.x = -0.12;
+  }
+  function laptop(x, z, ry, scr) {
+    const g = new THREE.Group(); g.position.set(x, 0.77, z); g.rotation.y = ry; furn.add(g);
+    box(g, 0.32, 0.015, 0.22, aluM, 0, 0, 0);
+    const lid = new THREE.Group(); lid.position.set(0, 0.015, -0.11); lid.rotation.x = -0.25; g.add(lid);
+    box(lid, 0.32, 0.21, 0.008, aluM, 0, 0, 0);
+    put(lid, new THREE.PlaneGeometry(0.3, 0.19), scr, 0, 0.105, 0.0045);
+  }
+  function mug(x, z, y = 0.77) { cyl(furn, 0.04, 0.036, 0.09, 12, mugCols[Math.floor(R() * 4)], x, y, z); }
+  const IL = LY.isl.len, IW = LY.isl.w;
+  for (const cx of LY.islands) {
+    box(furn, IL, 0.04, IW, ply, cx, 0.73, 0);
+    for (const ex of [-IL / 2 + 0.15, IL / 2 - 0.15]) { for (const ez of [-IW / 2 + 0.06, IW / 2 - 0.06]) box(furn, 0.05, 0.73, 0.05, darkMetal, cx + ex, 0, ez); box(furn, 0.05, 0.05, IW - 0.1, darkMetal, cx + ex, 0.62, 0); }
+    box(furn, IL - 0.3, 0.05, 0.05, darkMetal, cx, 0.62, 0);
+    box(furn, IL - 0.4, 0.07, 0.12, spineM, cx, 0.77, 0);
+    for (let k = 0; k < 3; k++) {
+      const sx = cx - 0.8 + k * 0.8;
+      for (const sz of [-0.061, 0.061]) box(furn, 0.16, 0.045, 0.004, socketM, sx, 0.785, sz);
+      box(furn, 0.03, 0.004, 0.02, usbM, sx + 0.12, 0.84, 0);
+    }
+    cyl(furn, 0.025, 0.025, 0.73, 8, spineM, cx, 0, 0);
+    box(furn, 0.3, 0.015, 0.14, M('#3a3650', 0.6), cx, 0, 0);
+    [-0.8, 0, 0.8].forEach((ox, i) => {
+      for (const sz of [-1, 1]) {
+        shellChair(cx + ox + (R() - 0.5) * 0.06, sz * (IW / 2 + 0.33), (sz > 0 ? 0 : Math.PI) + (R() - 0.5) * 0.3, chairCols[(i + (sz > 0 ? 1 : 3) + (cx > 0 ? 2 : 0)) % 4]);
+        const rr = R();
+        if (rr < 0.65) laptop(cx + ox + (R() - 0.5) * 0.08, sz * 0.22, sz > 0 ? 0 : Math.PI, R() < 0.5 ? scrA : scrB);
+        if (rr > 0.4) mug(cx + ox + 0.22, sz * 0.3);
+      }
+    });
+    blob(cx, 0, IL + 0.8, 2.3, 0.005);
+    const hg = new THREE.Group(); hg.position.set(cx, 2.2, 0); furn.add(hg);
+    const outer = new THREE.Mesh(new THREE.TorusGeometry(1.0, 0.03, 6, 6), G('#c8fbf6', 'hex')); outer.rotation.x = Math.PI / 2; hg.add(outer);
+    const inner = new THREE.Mesh(new THREE.TorusGeometry(0.6, 0.025, 6, 6), G('#ff7eb6', 'hex')); inner.rotation.set(Math.PI / 2, 0, Math.PI / 6); hg.add(inner);
+    for (let k = 0; k < 3; k++) { const a = k * 2 * Math.PI / 3; cyl(hg, 0.004, 0.004, 0.6, 4, darkMetal, Math.cos(a), 0, Math.sin(a)); }
+  }
+
+  // ---------- линейный рабочий свет над ПК
+  const workEmit = G('#fff4e6', 'line'), wz = HW - 0.7;
+  for (const s of [-1, 1]) {
+    box(furn, L8 - 0.3, 0.05, 0.09, M('#2a2838', 0.5, 0.3), xc, 2.42, s * wz);
+    box(furn, L8 - 0.4, 0.01, 0.07, workEmit, xc, 2.41, s * wz);
+    for (const ex of [-(L8 / 2 - 0.4), L8 / 2 - 0.4]) cyl(furn, 0.004, 0.004, 0.33, 4, darkMetal, xc + ex, 2.47, s * wz);
+  }
+
+  // ---------- акустические соты на северной стене
+  const hexGeo = new THREE.CylinderGeometry(0.19, 0.19, 0.035, 6); hexGeo.rotateX(Math.PI / 2);
+  const felt = ['#2f3a66', '#2f3a66', '#c9809f', '#3d9c98', '#5b3b6e', '#2f3a66', '#c9809f', '#3d9c98'];
+  const dxh = Math.sqrt(3) * 0.2, shumX = d.x1 + 0.15;
+  for (let row = 0; row < 4; row++) {
+    const y = 1.5 + row * 0.3;
+    for (let col = -30; col < 40; col++) {
+      const x = col * dxh + (row % 2 ? dxh / 2 : 0);
+      if (x < PC.x0 + 0.15 || x > HL - 0.25 || Math.hypot(x - shumX, y - 2.35) < 0.5) continue;
+      let f = 0; for (const [bx, by, br] of LY.sotyBlobs) f = Math.max(f, 1 - Math.hypot((x - bx) / br, (y - by) / (br * 0.55)));
+      if (f + (R() - 0.5) * 0.5 < 0.25) continue;
+      const depth = R() < 0.25 ? 0.06 : 0.035;
+      const m = new THREE.Mesh(hexGeo, M(felt[Math.floor(R() * felt.length)], 1)); m.scale.z = depth / 0.035;
+      onWall('north', m, x, y, depth / 2 + 0.002);
+    }
+  }
+  onWall('north', new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.016, 8, 40), G('#5dff9b', 'led')), shumX, 2.35, 0.02);
+  const db = signTex('41 дБ', 256, 96, `600 52px ${MONO}`, '#5dff9b', '#e6fff0', 10);
+  wallPlane('north', 0.2, 0.075, GT(db.t, 'led'), shumX, 2.35, 0.02);
+  // табло свободных мест над дверью
+  wallBox('north', 0.76, 0.46, 0.04, monM, (d.x0 + d.x1) / 2, 2.42);
+  wallPlane('north', 0.72, 0.405, GT(tvTex(), 'screen', { transparent: false, depthWrite: true }), (d.x0 + d.x1) / 2, 2.42, 0.042);
+
+  function plant(x, y0, z, s, pot = '#c96f4f') {
+    cyl(furn, 0.16 * s, 0.12 * s, 0.32 * s, 14, M(pot, 0.7), x, y0, z);
+    const leaf = ['#3f7a5a', '#5b9a6a', '#2f5e48', '#6fae6f'], n = 5 + Math.floor(R() * 3);
+    for (let i = 0; i < n; i++) { const a = R() * Math.PI * 2, rr = R() * 0.14 * s; const m = sph(furn, (0.13 + R() * 0.08) * s, M(leaf[i % 4], 0.8, 0, true), x + Math.cos(a) * rr, y0 + 0.32 * s + (0.1 + R() * 0.45) * s, z + Math.sin(a) * rr, 6, 4); m.scale.y = 1.25; }
+  }
+  const bookCols = ['#ff7eb6', '#73e6dc', '#ffc37d', '#9d7bff', '#efe9f8', '#2f3a66', '#e8746b', '#3d9c98'];
+
+  // ---------- лаунж между рядами ПК
+  put(furn, new THREE.CylinderGeometry(LY.rug.r, LY.rug.r, 0.012, 6), new THREE.MeshStandardMaterial({ map: rugTex(), roughness: 1 }), LY.rug.x, 0.006, LY.rug.z);
+  const bagGeo = (() => {
+    const pts = [[0, 0], [0.36, 0.015], [0.44, 0.09], [0.47, 0.2], [0.45, 0.32], [0.39, 0.45], [0.3, 0.57], [0.2, 0.66], [0.09, 0.71], [0.001, 0.72]].map(p => new THREE.Vector2(p[0], p[1]));
+    const geo = new THREE.LatheGeometry(pts, 28), pos = geo.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      let x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+      const n = 1 + 0.045 * Math.sin(3 * Math.atan2(z, x) + y * 7); x *= n; z *= n;
+      if (z > 0 && y > 0.28) { const k = Math.min(1, (y - 0.28) / 0.35) * Math.min(1, z / 0.4); z -= 0.16 * k; y -= 0.1 * k; }
+      pos.setXYZ(i, x, y, z);
+    }
+    geo.computeVertexNormals(); return geo;
+  })();
+  const [tx, tz, tr] = LY.table;
+  for (const [x, z, col] of LY.bags) {
+    const onRug = Math.hypot(x - LY.rug.x, z - LY.rug.z) < LY.rug.r * 0.9, y = onRug ? 0.012 : 0;
+    const m = put(furn, bagGeo, M(col, 0.95), x, y, z, Math.atan2(tx - x, tz - z) + (R() - 0.5) * 0.4);
+    m.scale.setScalar(0.92 + R() * 0.1);
+    blob(x, z, 1.1, 1.1, y + 0.003);
+  }
+  cyl(furn, tr, tr, 0.035, 6, ply, tx, 0.36, tz); cyl(furn, 0.03, 0.05, 0.36, 10, darkMetal, tx, 0, tz);
+  mug(tx - 0.08, tz + 0.05, 0.395); mug(tx + 0.1, tz - 0.08, 0.395);
+  const pendM = G('#ffcf8f', 'pendant');
+  for (const [x, y, z] of LY.pendants) { sph(furn, 0.11, pendM, x, y, z, 20, 14); cyl(furn, 0.004, 0.004, H - y - 0.1, 4, darkMetal, x, y + 0.1, z); }
+  // полка с lo-fi радио на торцевой стене
+  const sh = LY.shelf;
+  wallBox('east', sh.z1 - sh.z0, 0.03, 0.26, ply, (sh.z0 + sh.z1) / 2, 1.25);
+  box(furn, 0.22, 0.08, 0.34, M('#e8e2d6', 0.5), HL - 0.14, 1.265, sh.z0 + 0.25);
+  cyl(furn, 0.13, 0.13, 0.01, 32, M('#111016', 0.3), HL - 0.14, 1.345, sh.z0 + 0.25);
+  cyl(furn, 0.035, 0.035, 0.012, 16, M('#ff7eb6', 0.5), HL - 0.14, 1.346, sh.z0 + 0.25);
+  box(furn, 0.16, 0.26, 0.18, M('#2a2838', 0.6), HL - 0.12, 1.265, sh.z1 - 0.14);
+  for (let k = 0; k < 5; k++) box(furn, 0.2, 0.22, 0.012, M(bookCols[k], 0.7), HL - 0.14, 1.265, sh.z0 + 0.48 + k * 0.016);
+  const fm = signTex('lo-fi.fm', 768, 192, `400 110px ${MONO}`, '#ffc37d', '#fff4e3', 26);
+  wallPlane('east', 0.6, 0.15, GT(fm.t, 'sign'), (sh.z0 + sh.z1) / 2, 1.52, 0.02);
+
+  // ---------- торцевая стена лаунжа: мурал и неон
+  const mural = muralTex();
+  wallPlane('east', LY.W, H, new THREE.MeshStandardMaterial({ map: mural, emissiveMap: mural, emissive: new THREE.Color('#ffffff'), emissiveIntensity: 0.22, roughness: 0.9 }), 0, H / 2, 0.003);
+  const sg = LY.sign;
+  const lh = signTex('localhost', 2048, 512, `300 280px ${MONO}`, '#ff7eb6', '#ffe0ee', 36);
+  wallPlane('east', 2.4, 0.6, GT(lh.t, 'sign'), sg.z, 1.98, 0.03);
+  const its = signTex('ИТС · ВВГУ', 1024, 192, `600 116px ${DISP}`, '#73e6dc', '#e2fffb', 26);
+  wallPlane('east', 1.4, 0.26, GT(its.t, 'sign'), sg.z, 2.45, 0.03);
+  const ps = signTex('PRESS START', 1024, 192, `600 104px ${DISP}`, '#ffc37d', '#fff4e3', 30);
+  wallPlane('east', 1.0, 0.19, GT(ps.t, 'sign'), LY.arcade.z, 2.42, 0.03);
+  const cursor = wallBox('east', 0.16, 0.032, 0.012, G('#ff7eb6', 'sign'), sg.z + (lh.width / 2 / 2048) * 2.4 + 0.18, 1.86);
+  cursor.userData.keep = true;
+
+  // ---------- учебный фронт: экран под существующий проектор, маркерная стена, кафедра
+  wallPlane('west', LY.W, H, new THREE.MeshStandardMaterial({ map: stencilTex(), roughness: 0.92 }), 0, H / 2, 0.003);
+  const sc = LY.screen, scW = sc.z1 - sc.z0, scH = sc.y1 - sc.y0;
+  wallBox('west', scW + 0.16, 0.09, 0.12, M('#e9e6f2', 0.4, 0.2), (sc.z0 + sc.z1) / 2, sc.y1 + 0.1);
+  wallBox('west', scW + 0.04, scH + 0.04, 0.012, M('#1d1b29', 0.6), (sc.z0 + sc.z1) / 2, (sc.y0 + sc.y1) / 2);
+  wallPlane('west', scW, scH, GT(slideTex(), 'proj', { transparent: false, depthWrite: true }), (sc.z0 + sc.z1) / 2, (sc.y0 + sc.y1) / 2, 0.014);
+  const bd = LY.board;
+  wallBox('west', bd.z1 - bd.z0 + 0.04, bd.y1 - bd.y0 + 0.04, 0.01, M('#c9c3dc', 0.5), (bd.z0 + bd.z1) / 2, (bd.y0 + bd.y1) / 2);
+  wallPlane('west', bd.z1 - bd.z0, bd.y1 - bd.y0, new THREE.MeshStandardMaterial({ map: boardTex(), roughness: 0.25 }), (bd.z0 + bd.z1) / 2, (bd.y0 + bd.y1) / 2, 0.012);
+  wallBox('west', bd.z1 - bd.z0, 0.03, 0.06, M('#c9c3dc', 0.5), (bd.z0 + bd.z1) / 2, bd.y0 - 0.02);
+  const pj = LY.projector;
+  box(furn, 0.32, 0.12, 0.38, M('#e9e6f2', 0.4), pj.x, 2.44, pj.z);
+  const lens = put(furn, new THREE.CylinderGeometry(0.05, 0.055, 0.05, 16), M('#121118', 0.3), pj.x - 0.18, 2.5, pj.z + 0.08); lens.rotation.z = Math.PI / 2;
+  cyl(furn, 0.02, 0.02, 0.24, 8, darkMetal, pj.x, 2.56, pj.z);
+  const dk = LY.desk, dcx = (dk.x0 + dk.x1) / 2, dcz = (dk.z0 + dk.z1) / 2, dl = dk.z1 - dk.z0;
+  box(furn, dk.x1 - dk.x0, 0.04, dl, ply, dcx, 0.73, dcz);
+  box(furn, 0.02, 0.6, dl, deskSide, dk.x1 - 0.01, 0.13, dcz);
+  for (const ez of [dk.z0 + 0.03, dk.z1 - 0.03]) box(furn, dk.x1 - dk.x0, 0.73, 0.03, deskSide, dcx, 0, ez);
+  laptop(dcx - 0.05, dcz - 0.1, -Math.PI / 2, scrA);
+  box(furn, 0.12, 0.04, 0.2, M('#1d1b29', 0.4), dcx + 0.15, 0.77, dcz + 0.35);
+  box(furn, 0.014, 0.01, 0.06, usbM, dcx + 0.22, 0.81, dcz + 0.35);
+  plant(dcx + 0.1, 0.77, dk.z1 - 0.15, 0.3, '#73e6dc');
+  officeChair(dk.x0 - 0.38, dcz, -Math.PI / 2);
+  blob(dcx - 0.2, dcz, 1.6, 1.6, 0.004);
+  // кофе-стойка у двери, над ней шкаф-зарядка
+  const cf = LY.coffee, ccz = (cf.z0 + cf.z1) / 2, cl = cf.z1 - cf.z0, cx0 = -HL + 0.3;
+  box(furn, 0.6, 0.86, cl, M('#2f6f73', 0.6), cx0, 0, ccz);
+  box(furn, 0.64, 0.04, cl + 0.04, ply, cx0, 0.86, ccz);
+  box(furn, 0.02, 0.5, 0.5, M('#d8d2ea', 0.5), cx0 + 0.31, 0.15, cf.z0 + 0.35);
+  cyl(furn, 0.075, 0.085, 0.2, 16, M('#efeaf6', 0.3), cx0 - 0.05, 0.9, LY.locker.z);
+  box(furn, 0.32, 0.36, 0.26, M('#1d1b29', 0.4, 0.3), cx0 - 0.05, 0.9, cf.z1 - 0.2);
+  mug(cx0 + 0.15, cf.z1 - 0.48, 0.9); mug(cx0 + 0.18, cf.z1 - 0.6, 0.9);
+  blob(cx0, ccz, 0.9, cl + 0.4, 0.004);
+  const lz = LY.locker.z;
+  wallBox('west', 0.7, 0.8, 0.22, M('#2b2a40', 0.5, 0.2), lz, 1.55);
+  for (let i = 0; i < 10; i++) {
+    const a = lz + (i % 2 ? 0.17 : -0.17), y = 1.15 + Math.floor(i / 2) * 0.15 + 0.075;
+    wallBox('west', 0.31, 0.13, 0.232, M('#3a3756', 0.45, 0.2), a, y);
+    onWall('west', new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.018, 0.01), G(i % 3 ? '#5dff9b' : '#ffc37d', 'led')), a + 0.11, y + 0.04, 0.237);
+  }
+
+  // ---------- аркадный автомат
+  {
+    const g = new THREE.Group();
+    const prof = [[0, 0], [0.72, 0], [0.72, 0.86], [0.86, 0.94], [0.84, 1.0], [0.6, 1.04], [0.5, 1.58], [0.68, 1.64], [0.68, 1.86], [0, 1.86]];
+    const geo = new THREE.ExtrudeGeometry(new THREE.Shape(prof.map(p => new THREE.Vector2(p[0], p[1]))), { depth: 0.66, bevelEnabled: false });
+    geo.translate(-0.43, 0, -0.33);
+    g.add(new THREE.Mesh(geo, [new THREE.MeshStandardMaterial({ map: sideArtTex(), roughness: 0.6 }), M('#17151f', 0.5)]));
+    const n = new THREE.Vector3(0.54, 0.1, 0).normalize(), mid = new THREE.Vector3(0.12, 1.31, 0);
+    const scr = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.46), GT(arcadeScreenTex(), 'screen', { transparent: false, depthWrite: true }));
+    scr.position.copy(mid).addScaledVector(n, 0.004); scr.lookAt(mid.clone().add(n)); g.add(scr);
+    const mq = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.2), GT(marqueeTex(), 'marquee', { transparent: false, depthWrite: true }));
+    mq.position.set(0.253, 1.75, 0); mq.lookAt(1, 1.75, 0); g.add(mq);
+    cyl(g, 0.01, 0.01, 0.08, 6, darkMetal, 0.33, 1.02, -0.15); sph(g, 0.026, M('#e8384f', 0.3), 0.33, 1.11, -0.15);
+    ['#ff7eb6', '#73e6dc', '#ffc37d'].forEach((c, i) => cyl(g, 0.022, 0.022, 0.015, 12, G(c, 'led'), 0.3, 1.02, 0.02 + i * 0.08));
+    for (const z of [-0.07, 0.07]) { const cs = plane(g, 0.05, 0.09, G('#ff5f3a', 'led'), 0.293, 0.62, z); cs.rotation.y = Math.PI / 2; }
+    const tm = G('#73e6dc', 'edge');
+    for (const side of [-0.335, 0.335]) for (let i = 0; i < prof.length; i++) {
+      const a = prof[i], b = prof[(i + 1) % prof.length], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(len, 0.014, 0.014), tm);
+      bar.position.set((a[0] + b[0]) / 2 - 0.43, (a[1] + b[1]) / 2, side); bar.rotation.z = Math.atan2(b[1] - a[1], b[0] - a[0]); g.add(bar);
+    }
+    g.position.set(LY.arcade.x, 0, LY.arcade.z); g.rotation.y = LY.arcade.rot; furn.add(g);
+    blob(LY.arcade.x, LY.arcade.z, 1.3, 1.1, 0.004, LY.arcade.rot);
+  }
+
+  bake(furn); bake(ceil); for (const k in walls) bake(walls[k].g);
+
+  // ---------- свет
+  const hemi = new THREE.HemisphereLight('#ffffff', '#000000', 1); scene.add(hemi);
+  const rects = { work: [], isl: [], win: [] };
+  function rect(w, h, pos, look, bucket) { const l = new THREE.RectAreaLight('#ffffff', 1, w, h); l.position.set(...pos); l.lookAt(...look); scene.add(l); rects[bucket].push(l); }
+  for (const s of [-1, 1]) rect(L8 - 0.4, 0.35, [xc, 2.39, s * wz], [xc, 0, s * wz], 'work');
+  for (const cx of LY.islands) rect(IL - 0.3, 0.7, [cx, 2.17, 0], [cx, 0, 0], 'isl');
+  for (const c of LY.windows) rect(1.7, 1.4, [c, 1.65, HW - 0.03], [c, 1.65, 0], 'win');
+  const pt = (col, dist, p) => { const l = new THREE.PointLight(col, 1, dist, 2); l.position.set(...p); scene.add(l); return l; };
+  const pNeon = pt('#ff6fb0', 5, [HL - 0.6, 1.95, sg.z]);
+  const pWarm = [pt('#ffb36b', 5, [LY.rug.x, 1.8, LY.rug.z + 0.3]), pt('#ffb36b', 3.5, [LY.rug.x - 0.8, 1.2, 1.0])];
+  const pHub = pt('#ffcf9a', 4, [-HL + 0.7, 2.3, ccz]);
+  const pArc = pt('#73e6dc', 3, [LY.arcade.x - 0.6, 1.3, LY.arcade.z]);
+
+  // ---------- рендер
+  const controls = new OrbitControls(camera, canvas);
+  controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxDistance = 34; controls.minDistance = 0.3;
+  controls.screenSpacePanning = true; controls.autoRotateSpeed = 0.6;
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), 0.9, 0.55, 0.82);
+  composer.addPass(bloom); composer.addPass(new OutputPass());
+
+  // ---------- сцены света
+  const MODES = {
+    day: { exp: 1.0, hemi: [2.6, '#e9eeff', '#4c4560'], work: [5.5, '#fff3e3'], isl: [3.0, '#f2fbff'], win: [5.0, '#e3f0ff'], neon: 1.2, warm: 1.0, hub: 1.0, arc: 0.6, bloom: [0.35, 0.5, 1.05], pano: panoDay,
+      k: { proj: 1.0, strip: 0.9, wash: 0.3, sign: 1.5, hex: 1.5, pendant: 1.3, screen: 0.95, line: 2.2, led: 1.6, window: 1.0, marquee: 1.1, edge: 0.8 } },
+    eve: { exp: 1.1, hemi: [0.95, '#6b5fb0', '#1c1530'], work: [0.5, '#ffd9b0'], isl: [1.8, '#dff6ff'], win: [0.7, '#7d6cff'], neon: 5, warm: 5, hub: 3, arc: 2.2, bloom: [0.6, 0.45, 0.9], pano: panoNight,
+      k: { proj: 0.22, strip: 2.6, wash: 0.8, sign: 3.0, hex: 1.7, pendant: 1.8, screen: 1.0, line: 0.35, led: 2.6, window: 1.0, marquee: 1.7, edge: 2.0 } },
+    hack: { exp: 1.1, hemi: [0.7, '#4d5cff', '#120f22'], work: [1.0, '#d9ecff'], isl: [2.4, '#bfefff'], win: [0.4, '#4d5cff'], neon: 5, warm: 2, hub: 2, arc: 3, bloom: [0.75, 0.5, 0.88], pano: panoNight,
+      k: { proj: 0.9, strip: 3.0, wash: 1.0, sign: 3.2, hex: 2.2, pendant: 1.2, screen: 1.1, line: 0.5, led: 3.0, window: 0.9, marquee: 2.0, edge: 2.4 } }
+  };
+  const CYCLE = new Set(['strip', 'wash', 'hex', 'edge']);
+  let mode = 'eve';
+  function setMode(m) {
+    if (!MODES[m]) return; mode = m; const c = MODES[m];
+    renderer.toneMappingExposure = c.exp;
+    hemi.intensity = c.hemi[0]; hemi.color.set(c.hemi[1]); hemi.groundColor.set(c.hemi[2]);
+    for (const b of ['work', 'isl', 'win']) rects[b].forEach(l => { l.intensity = c[b][0]; l.color.set(c[b][1]); });
+    pNeon.intensity = c.neon; pWarm.forEach(l => l.intensity = c.warm); pHub.intensity = c.hub; pArc.intensity = c.arc;
+    bloom.strength = c.bloom[0]; bloom.radius = c.bloom[1]; bloom.threshold = c.bloom[2];
+    winMat.map = c.pano;
+    for (const gl of glows) gl.m.color.copy(gl.base).multiplyScalar(c.k[gl.key] ?? 1);
+    document.querySelectorAll('#modes [data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m)));
+  }
+  setMode('eve');
+  document.getElementById('modes').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+  window.addEventListener('lofi:mode', e => setMode(e.detail));
+
+  // ---------- виды
+  const VIEWS = {
+    overview: { p: [-2.4, 9.2, -9.0], t: [-0.1, 0, 0.4] },
+    entry: { p: [(d.x0 + d.x1) / 2, 1.62, -HW + 0.6], t: [3.5, 1.05, 0.9] },
+    work: { p: [-3.3, 1.55, 1.2], t: [2.6, 1.15, -1.4] },
+    lounge: { p: [1.7, 1.55, -1.15], t: [HL, 1.4, 0.4] },
+    hub: { p: [1.4, 1.7, -1.15], t: [-HL, 1.45, 0.5] }
+  };
+  const tanH = () => Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  function planView() {
+    const a = camera.aspect;
+    if (a < 1) { const span = Math.max(LY.L + 1.3, (LY.W + 1.6) / a); return { p: [0.001, span / 2 / tanH(), 0], t: [0, 0, 0] }; }
+    const span = Math.max((LY.L + 3.1) / a, LY.W + 2.8); return { p: [0, span / 2 / tanH(), 0.001], t: [0, 0, 0] };
+  }
+  function getView(name) {
+    if (name === 'plan') return planView();
+    if (name === 'overview' && camera.aspect < 1.1) {
+      const t = new THREE.Vector3(0.3, 0, 0.3), dir = new THREE.Vector3(-8.5, 9, -3.5).sub(t).normalize();
+      const dist = 14 * Math.max(1, 0.8 / camera.aspect);
+      return { p: t.clone().addScaledVector(dir, dist).toArray(), t: t.toArray() };
+    }
+    return VIEWS[name];
+  }
+  let fly = null;
+  function flyTo(name, dur = 1400) {
+    const v = getView(name); if (!v) return;
+    const p1 = new THREE.Vector3(...v.p), t1 = new THREE.Vector3(...v.t);
+    if (reduced) { camera.position.copy(p1); controls.target.copy(t1); controls.update(); fly = null; }
+    else fly = { p0: camera.position.clone(), t0: controls.target.clone(), p1, t1, start: performance.now(), dur };
+    document.querySelectorAll('#views [data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === name)));
+  }
+  const spinBtn = document.getElementById('tgl-spin');
+  function setSpin(on) { controls.autoRotate = on; spinBtn.setAttribute('aria-pressed', String(on)); }
+  document.getElementById('views').addEventListener('click', e => { const b = e.target.closest('[data-view]'); if (b) { setSpin(false); flyTo(b.dataset.view); } });
+  spinBtn.addEventListener('click', () => { const on = !controls.autoRotate; if (on && camera.position.y < H) flyTo('overview'); setSpin(on); });
+  controls.addEventListener('start', () => { fly = null; setSpin(false); document.querySelectorAll('#views [data-view]').forEach(b => b.setAttribute('aria-pressed', 'false')); });
+
+  // ---------- подписи
+  const infoEl = document.getElementById('info');
+  let openLbl = null;
+  function closeInfo() { infoEl.hidden = true; if (openLbl) openLbl.setAttribute('aria-expanded', 'false'); openLbl = null; }
+  document.getElementById('info-x').addEventListener('click', closeInfo);
+  const lbls = FEATURES.map(f => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'lbl'; b.setAttribute('aria-expanded', 'false');
+    b.innerHTML = `<b>${f.n}</b><span>${f.t}</span>`; labelsEl.appendChild(b);
+    b.addEventListener('click', () => {
+      if (openLbl === b) return closeInfo();
+      closeInfo(); openLbl = b; b.setAttribute('aria-expanded', 'true');
+      document.getElementById('info-t').textContent = f.n + '. ' + f.t; document.getElementById('info-d').textContent = f.d; infoEl.hidden = false;
+    });
+    return { el: b, pos: new THREE.Vector3(...f.p), group: f.g ? walls[f.g].g : null };
+  });
+  const lblBtn = document.getElementById('tgl-labels');
+  lblBtn.addEventListener('click', () => { const on = lblBtn.getAttribute('aria-pressed') !== 'true'; lblBtn.setAttribute('aria-pressed', String(on)); viewerEl.classList.toggle('no-labels', !on); if (!on) closeInfo(); });
+
+  // ---------- размер и цикл
+  function resize() {
+    const w = viewerEl.clientWidth, h = viewerEl.clientHeight; if (!w || !h) return;
+    renderer.setSize(w, h, false); composer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe(viewerEl); resize();
+  let onScreen = true;
+  new IntersectionObserver(es => { onScreen = es[0].isIntersecting; }).observe(viewerEl);
+
+  resize();
+  { const v = getView('overview'); camera.position.set(v.p[0] * 1.5, v.p[1] * 1.4, v.p[2] * 1.5); controls.target.set(...v.t); controls.update(); }
+  flyTo('overview', 2200);
+  const v3 = new THREE.Vector3(), tmp = new THREE.Vector3(), t0 = performance.now();
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (!onScreen || document.hidden) return;
+    tick(now);
+  }
+  function tick(now) {
+    const t = (now - t0) / 1000;
+    if (fly) {
+      const k = Math.min(1, (now - fly.start) / fly.dur), e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      camera.position.lerpVectors(fly.p0, fly.p1, e); controls.target.lerpVectors(fly.t0, fly.t1, e);
+      if (k >= 1) fly = null;
+    }
+    controls.update();
+    for (const k in walls) { const w = walls[k]; w.g.visible = tmp.copy(camera.position).sub(w.p).dot(w.n) > 0; }
+    ceil.visible = camera.position.y < H;
+    cursor.visible = reduced || Math.floor(t * 1.9) % 2 === 0;
+    if (mode === 'hack') {
+      const c = MODES.hack.k;
+      for (const gl of glows) if (CYCLE.has(gl.key)) gl.m.color.setHSL((t * 0.08 + gl.ph) % 1, 0.9, 0.6).multiplyScalar(c[gl.key]);
+    }
+    const W = viewerEl.clientWidth, Hh = viewerEl.clientHeight, showL = !viewerEl.classList.contains('no-labels');
+    for (const L of lbls) {
+      let show = showL && (!L.group || L.group.visible);
+      if (show) {
+        v3.copy(L.pos).project(camera);
+        show = v3.z > -1 && v3.z < 1 && Math.abs(v3.x) < 1.02 && Math.abs(v3.y) < 1.02;
+        if (show) L.el.style.transform = `translate(${((v3.x * 0.5 + 0.5) * W - 12).toFixed(1)}px, ${((-v3.y * 0.5 + 0.5) * Hh - 13).toFixed(1)}px)`;
+      }
+      L.el.hidden = !show;
+    }
+    composer.render();
+    if (!loadingEl.hidden) loadingEl.hidden = true;
+  }
+  requestAnimationFrame(frame);
+  window.__lofi = {
+    renderer, camera, controls, setMode, flyTo,
+    jump(name) { const v = getView(name); fly = null; camera.position.set(...v.p); controls.target.set(...v.t); tick(performance.now()); },
+    tick() { tick(performance.now()); }
+  };
+}
+
+try { await init(); }
+catch (err) { console.error(err); loadingEl.textContent = '3D-модель не загрузилась в этом браузере. План и смета ниже работают.'; loadingEl.hidden = false; }
+</script>
