@@ -8,6 +8,8 @@
 
 <img src="https://img.shields.io/badge/Three.js-000000?style=flat-square&logo=threedotjs&logoColor=white" alt="Three.js"> <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=flat-square&logo=javascript&logoColor=black" alt="JavaScript">
 
+<a href="https://limmmp.github.io/vvgu-coworking/"><img src="https://img.shields.io/badge/▶_Открыть_3D-000000?style=for-the-badge" alt="Демо"></a>
+
 </div>
 
 <table>
